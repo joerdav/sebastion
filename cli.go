@@ -9,21 +9,21 @@ import (
 	"strconv"
 )
 
-type Program struct {
+type TUIRunner struct {
 	Actions []Action
 	In      io.Reader
 	Out     io.Writer
 }
 
-func New(ac ...Action) Program {
-	return Program{
+func TUI(ac ...Action) TUIRunner {
+	return TUIRunner{
 		Actions: ac,
 		In:      os.Stdin,
 		Out:     os.Stdout,
 	}
 }
 
-func (p Program) getAction() (Action, error) {
+func (p TUIRunner) getAction() (Action, error) {
 	var idx int
 	for idx == 0 {
 		for i, a := range p.Actions {
@@ -47,7 +47,7 @@ func (p Program) getAction() (Action, error) {
 	return p.Actions[idx-1], nil
 }
 
-func (p Program) getStringInput(i Input) string {
+func (p TUIRunner) getStringInput(i Input) string {
 	for {
 		fmt.Fprintf(p.Out, "%s - %s\n", i.Name, i.Description)
 		fmt.Fprint(p.Out, "Enter string: ")
@@ -59,7 +59,7 @@ func (p Program) getStringInput(i Input) string {
 		return s
 	}
 }
-func (p Program) getBoolInput(i Input) bool {
+func (p TUIRunner) getBoolInput(i Input) bool {
 	for {
 		fmt.Fprintf(p.Out, "%s - %s\n", i.Name, i.Description)
 		fmt.Fprint(p.Out, "Enter bool [t/f]: ")
@@ -71,7 +71,7 @@ func (p Program) getBoolInput(i Input) bool {
 		return s == 't'
 	}
 }
-func (p Program) getIntInput(i Input) int {
+func (p TUIRunner) getIntInput(i Input) int {
 	for {
 		fmt.Fprintf(p.Out, "%s - %s\n", i.Name, i.Description)
 		fmt.Fprint(p.Out, "Enter number: ")
@@ -88,41 +88,48 @@ func (p Program) getIntInput(i Input) int {
 	}
 }
 
-func (p Program) getInputs(a Action) (InputValues, error) {
-	ivs := InputValues{}
+func (p TUIRunner) getInputs(a Action) error {
 	is := a.Inputs()
 	if len(is) == 0 {
 		fmt.Fprintln(p.Out, "No inputs required.")
-		return ivs, nil
+		return nil
 	}
 	fmt.Fprintln(p.Out)
-	for i, it := range is {
-		switch it.Type {
-		case InputTypeString:
-			ivs[i] = p.getStringInput(it)
-		case InputTypeBool:
-			ivs[i] = p.getBoolInput(it)
-		case InputTypeInt:
-			ivs[i] = p.getIntInput(it)
+	for _, it := range is {
+		switch ip := it.Value.(type) {
+		case InputReference[string]:
+			if err := ip.Set(p.getStringInput(it)); err != nil {
+				return err
+			}
+		case InputReference[bool]:
+			if err := ip.Set(p.getBoolInput(it)); err != nil {
+				return err
+			}
+		case InputReference[int]:
+			if err := ip.Set(p.getIntInput(it)); err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("unsupported input type [%+v]", ip)
 		}
 		fmt.Fprintln(p.Out)
 	}
-	return ivs, nil
+	return nil
 }
 
-func (p Program) Run() error {
+func (p TUIRunner) Run() error {
 	a, err := p.getAction()
 	if err != nil {
 		return err
 	}
-	is, err := p.getInputs(a)
+	err = p.getInputs(a)
 	if err != nil {
 		return err
 	}
 	n, _ := a.Details()
 	fmt.Fprintf(p.Out, "You are about to run the task \"%s\" with the following values:\n", n)
 	for i := range a.Inputs() {
-		fmt.Fprintf(p.Out, "%s: %v\n", a.Inputs()[i].Name, is[i])
+		fmt.Fprintf(p.Out, "%s: %v\n", a.Inputs()[i].Name, a.Inputs()[i].Value)
 	}
 	fmt.Fprintf(p.Out, "Run %s? [y/N]\n", n)
 	r := bufio.NewReader(p.In)
@@ -130,5 +137,5 @@ func (p Program) Run() error {
 	if s != 'y' && s != 'Y' {
 		return errors.New("exited")
 	}
-	return a.Run(is)
+	return a.Run()
 }
