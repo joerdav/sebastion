@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type TUIRunner struct {
@@ -56,7 +57,7 @@ func (p TUIRunner) getStringInput(i Input) string {
 		if err != nil {
 			continue
 		}
-		return s
+		return strings.TrimRight(s, "\n")
 	}
 }
 func (p TUIRunner) getBoolInput(i Input) bool {
@@ -80,7 +81,7 @@ func (p TUIRunner) getIntInput(i Input) int {
 		if err != nil {
 			continue
 		}
-		n, err := strconv.Atoi(string(s))
+		n, err := strconv.Atoi(strings.TrimSpace(string(s)))
 		if err != nil {
 			continue
 		}

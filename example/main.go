@@ -16,36 +16,37 @@ func openInputTTY() (*os.File, error) {
 }
 
 func main() {
-	p := sebastion.New(Panic{}, &CatSomething{}, &CancelPolicy{})
+	p := sebastion.TUI(Panic{}, &CatSomething{}, &Spam{})
 	if err := p.Run(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
-type CancelPolicy struct {
-	policyID           string
-	cancellationReason string
+type Spam struct {
+	message string
+	repeat  int
 }
 
-func (cp *CancelPolicy) Details() (string, string) { return "Cancel Policy", "" }
-func (cp *CancelPolicy) Inputs() []sebastion.Input {
+func (cp *Spam) Details() (string, string) { return "Spam a message", "" }
+func (cp *Spam) Inputs() []sebastion.Input {
 	return []sebastion.Input{
 		{
-			Name:        "Policy ID",
-			Description: "ID of the policy",
-			Value:       sebastion.StringInput(&cp.policyID),
+			Name:        "Message",
+			Description: "The message to print",
+			Value:       sebastion.StringInput(&cp.message),
 		},
 		{
-			Name:        "reason",
-			Description: "why",
-			Value:       sebastion.StringInput(&cp.cancellationReason),
+			Name:        "Repetitions",
+			Description: "How many times",
+			Value:       sebastion.IntInput(&cp.repeat),
 		},
 	}
 }
-func (cp *CancelPolicy) Run() error {
-	fmt.Print(cp.policyID)
-	fmt.Print(cp.cancellationReason)
+func (cp *Spam) Run() error {
+	for i := 0; i < cp.repeat; i++ {
+		fmt.Println(cp.message)
+	}
 	return nil
 }
 
