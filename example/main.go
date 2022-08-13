@@ -2,17 +2,46 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/joerdav/sebastion"
 )
 
-func main() {
-	p := sebastion.New(Panic{}, CatSomething{})
-	if err := p.Run(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+func openInputTTY() (*os.File, error) {
+	f, err := os.Open("/dev/tty")
+	if err != nil {
+		return nil, err
 	}
+	return f, nil
+}
+
+func main() {
+	p := sebastion.New(Panic{}, CatSomething{}, CancelPolicy{})
+	log.Println(p.Run())
+}
+
+type CancelPolicy struct{}
+
+func (CancelPolicy) Details() (string, string) { return "Cancel Policy", "" }
+func (CancelPolicy) Inputs() []sebastion.Input {
+	return []sebastion.Input{
+		{
+			Name:        "Policy ID",
+			Description: "ID of the policy",
+			Type:        sebastion.InputTypeString,
+		},
+		{
+			Name:        "reason",
+			Description: "why",
+			Type:        sebastion.InputTypeString,
+		},
+	}
+}
+func (CancelPolicy) Run(iv sebastion.InputValues) error {
+	fmt.Print(iv.GetString(0))
+	fmt.Print(iv.GetString(1))
+	return nil
 }
 
 type CatSomething struct{}
