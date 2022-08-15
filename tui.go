@@ -1,13 +1,13 @@
 package sebastion
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strconv"
-	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
 )
 
 type TUIRunner struct {
@@ -24,69 +24,68 @@ func TUI(ac ...Action) TUIRunner {
 	}
 }
 
-func (p TUIRunner) getAction() (Action, error) {
-	var idx int
-	for idx == 0 {
-		for i, a := range p.Actions {
-			n, d := a.Details()
-			fmt.Fprintf(p.Out, "[%d] %s\n", i+1, n)
-			if d != "" {
-				fmt.Fprintf(p.Out, "\t%s\n", d)
-			}
-		}
-		fmt.Fprint(p.Out, "Select an action: ")
-		r := bufio.NewReader(p.In)
-		s, _, err := r.ReadRune()
-		if err != nil {
-			return nil, err
-		}
-		idx, err = strconv.Atoi(string(s))
-		if err != nil {
-			idx = 0
-		}
+func actionString(a Action) string {
+	n, d := a.Details()
+	if d != "" {
+		return fmt.Sprintf("%v - %v", n, d)
 	}
-	return p.Actions[idx-1], nil
+	return fmt.Sprintf("%v", n)
 }
 
-func (p TUIRunner) getStringInput(i Input) string {
-	for {
-		fmt.Fprintf(p.Out, "%s - %s\n", i.Name, i.Description)
-		fmt.Fprint(p.Out, "Enter string: ")
-		r := bufio.NewReader(p.In)
-		s, err := r.ReadString('\n')
-		if err != nil {
-			continue
-		}
-		return strings.TrimRight(s, "\n")
+func (p TUIRunner) getAction() (Action, error) {
+	var options []string
+	actions := make(map[string]Action)
+	for _, a := range p.Actions {
+		as := actionString(a)
+		options = append(options, as)
+		actions[as] = a
 	}
+	chosen := ""
+	prompt := &survey.Select{
+		Message: "Choose an action:",
+		Options: options,
+	}
+	err := survey.AskOne(prompt, &chosen)
+	return actions[chosen], err
 }
-func (p TUIRunner) getBoolInput(i Input) bool {
-	for {
-		fmt.Fprintf(p.Out, "%s - %s\n", i.Name, i.Description)
-		fmt.Fprint(p.Out, "Enter bool [t/f]: ")
-		r := bufio.NewReader(p.In)
-		s, _, _ := r.ReadRune()
-		if s != 't' && s != 'f' {
-			continue
-		}
-		return s == 't'
+
+func (p TUIRunner) getStringInput(i Input) (string, error) {
+	inp := ""
+	prompt := &survey.Input{
+		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
 	}
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
+	return inp, err
 }
-func (p TUIRunner) getIntInput(i Input) int {
-	for {
-		fmt.Fprintf(p.Out, "%s - %s\n", i.Name, i.Description)
-		fmt.Fprint(p.Out, "Enter number: ")
-		r := bufio.NewReader(p.In)
-		s, err := r.ReadString('\n')
-		if err != nil {
-			continue
-		}
-		n, err := strconv.Atoi(strings.TrimSpace(string(s)))
-		if err != nil {
-			continue
-		}
-		return n
+func (p TUIRunner) getBoolInput(i Input) (bool, error) {
+	inp := false
+	prompt := &survey.Confirm{
+		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
 	}
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
+	return inp, err
+}
+func (p TUIRunner) getIntInput(i Input) (int, error) {
+	inp := ""
+	prompt := &survey.Input{
+		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
+	}
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(func(ans interface{}) error {
+		str, ok := ans.(string)
+		if !ok {
+			return errors.New("This response must be a number.")
+		}
+		_, err := strconv.Atoi(str)
+		if err != nil {
+			return errors.New("This response must be a number.")
+		}
+		return nil
+	}))
+	s, err := strconv.Atoi(inp)
+	if err != nil {
+		return 0, errors.New("This response must be a number.")
+	}
+	return s, err
 }
 
 func (p TUIRunner) getInputs(a Action) error {
@@ -99,15 +98,27 @@ func (p TUIRunner) getInputs(a Action) error {
 	for _, it := range is {
 		switch ip := it.Value.(type) {
 		case InputReference[string]:
-			if err := ip.Set(p.getStringInput(it)); err != nil {
+			s, err := p.getStringInput(it)
+			if err != nil {
+				return err
+			}
+			if err := ip.Set(s); err != nil {
 				return err
 			}
 		case InputReference[bool]:
-			if err := ip.Set(p.getBoolInput(it)); err != nil {
+			s, err := p.getBoolInput(it)
+			if err != nil {
+				return err
+			}
+			if err := ip.Set(s); err != nil {
 				return err
 			}
 		case InputReference[int]:
-			if err := ip.Set(p.getIntInput(it)); err != nil {
+			s, err := p.getIntInput(it)
+			if err != nil {
+				return err
+			}
+			if err := ip.Set(s); err != nil {
 				return err
 			}
 		default:
@@ -128,14 +139,19 @@ func (p TUIRunner) Run() error {
 		return err
 	}
 	n, _ := a.Details()
-	fmt.Fprintf(p.Out, "You are about to run the task \"%s\" with the following values:\n", n)
+	fmt.Fprintf(p.Out, "You are about to run the task \"%s\" with the following values:\n\n", n)
 	for i := range a.Inputs() {
-		fmt.Fprintf(p.Out, "%s: %v\n", a.Inputs()[i].Name, a.Inputs()[i].Value)
+		fmt.Fprintf(p.Out, "%s: %v\n\n", a.Inputs()[i].Name, a.Inputs()[i].Value)
 	}
-	fmt.Fprintf(p.Out, "Run %s? [y/N]\n", n)
-	r := bufio.NewReader(p.In)
-	s, _, _ := r.ReadRune()
-	if s != 'y' && s != 'Y' {
+	inp := false
+	prompt := &survey.Confirm{
+		Message: fmt.Sprintf("Run %s?", n),
+	}
+	err = survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
+	if err != nil {
+		return err
+	}
+	if !inp {
 		return errors.New("exited")
 	}
 	return a.Run()
