@@ -6,13 +6,19 @@ import (
 )
 
 var (
-	ErrTypeMismatch      = errors.New("a type mismatch error has occured, this should not be possible, please raise an issue")
+	// ErrTypeMismatch should never occur, and would be an internal error with sebastion.
+	ErrTypeMismatch = errors.New("a type mismatch error has occured, this should not be possible, please raise an issue")
+	// ErrNilInputReference InputReference[T] types must be provided a pointer of type T that can be used.
 	ErrNilInputReference = errors.New("nil InputReference, an actions input is missing a reference")
 )
 
+// Action defines an interface for a script that takes some input and runs some code.
 type Action interface {
+	// Details should return the name and an optional description of the Action.
 	Details() (name, description string)
+	// Inputs outlines the values required to run the Action.
 	Inputs() []Input
+	// Run should contain the code to run the action.
 	Run() error
 }
 

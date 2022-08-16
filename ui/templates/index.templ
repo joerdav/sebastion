@@ -1,0 +1,15 @@
+package templates
+
+import "github.com/joerdav/sebastion"
+
+templ Index(actions []sebastion.Action) {
+	@Layout() {
+		for _, a := range actions {
+			@row(a.Details())
+		}
+	}
+}
+
+templ row(name, description string) {
+	<div>{name} - {description}</div>
+}

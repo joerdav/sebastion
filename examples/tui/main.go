@@ -27,7 +27,6 @@ func main() {
 type Spam struct {
 	message string
 	repeat  int
-	structa struct{}
 }
 
 func (cp *Spam) Details() (string, string) { return "Spam a message", "" }
