@@ -1,4 +1,4 @@
-package sebastion
+package tui
 
 import (
 	"errors"
@@ -8,15 +8,16 @@ import (
 	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/joerdav/sebastion"
 )
 
 type TUIRunner struct {
-	Actions []Action
+	Actions []sebastion.Action
 	In      io.Reader
 	Out     io.Writer
 }
 
-func TUI(ac ...Action) TUIRunner {
+func TUI(ac ...sebastion.Action) TUIRunner {
 	return TUIRunner{
 		Actions: ac,
 		In:      os.Stdin,
@@ -24,7 +25,7 @@ func TUI(ac ...Action) TUIRunner {
 	}
 }
 
-func actionString(a Action) string {
+func actionString(a sebastion.Action) string {
 	n, d := a.Details()
 	if d != "" {
 		return fmt.Sprintf("%v - %v", n, d)
@@ -32,9 +33,9 @@ func actionString(a Action) string {
 	return fmt.Sprintf("%v", n)
 }
 
-func (p TUIRunner) getAction() (Action, error) {
+func (p TUIRunner) getAction() (sebastion.Action, error) {
 	var options []string
-	actions := make(map[string]Action)
+	actions := make(map[string]sebastion.Action)
 	for _, a := range p.Actions {
 		as := actionString(a)
 		options = append(options, as)
@@ -49,23 +50,29 @@ func (p TUIRunner) getAction() (Action, error) {
 	return actions[chosen], err
 }
 
-func (p TUIRunner) getStringInput(i Input) (string, error) {
+func (p TUIRunner) getStringInput(i sebastion.Input) error {
 	inp := ""
 	prompt := &survey.Input{
 		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
 	}
 	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
-	return inp, err
+	if err != nil {
+		return err
+	}
+	return i.Value.Set(inp)
 }
-func (p TUIRunner) getBoolInput(i Input) (bool, error) {
+func (p TUIRunner) getBoolInput(i sebastion.Input) error {
 	inp := false
 	prompt := &survey.Confirm{
 		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
 	}
 	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
-	return inp, err
+	if err != nil {
+		return err
+	}
+	return i.Value.Set(inp)
 }
-func (p TUIRunner) getIntInput(i Input) (int, error) {
+func (p TUIRunner) getIntInput(i sebastion.Input) error {
 	inp := ""
 	prompt := &survey.Input{
 		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
@@ -83,12 +90,12 @@ func (p TUIRunner) getIntInput(i Input) (int, error) {
 	}))
 	s, err := strconv.Atoi(inp)
 	if err != nil {
-		return 0, errors.New("This response must be a number.")
+		return errors.New("This response must be a number.")
 	}
-	return s, err
+	return i.Value.Set(s)
 }
 
-func (p TUIRunner) getInputs(a Action) error {
+func (p TUIRunner) getInputs(a sebastion.Action) error {
 	is := a.Inputs()
 	if len(is) == 0 {
 		fmt.Fprintln(p.Out, "No inputs required.")
@@ -96,33 +103,19 @@ func (p TUIRunner) getInputs(a Action) error {
 	}
 	fmt.Fprintln(p.Out)
 	for _, it := range is {
+		var err error
 		switch ip := it.Value.(type) {
-		case InputReference[string]:
-			s, err := p.getStringInput(it)
-			if err != nil {
-				return err
-			}
-			if err := ip.Set(s); err != nil {
-				return err
-			}
-		case InputReference[bool]:
-			s, err := p.getBoolInput(it)
-			if err != nil {
-				return err
-			}
-			if err := ip.Set(s); err != nil {
-				return err
-			}
-		case InputReference[int]:
-			s, err := p.getIntInput(it)
-			if err != nil {
-				return err
-			}
-			if err := ip.Set(s); err != nil {
-				return err
-			}
+		case sebastion.InputReference[string]:
+			err = p.getStringInput(it)
+		case sebastion.InputReference[bool]:
+			err = p.getBoolInput(it)
+		case sebastion.InputReference[int]:
+			err = p.getIntInput(it)
 		default:
 			return fmt.Errorf("unsupported input type [%+v]", ip)
+		}
+		if err != nil {
+			return err
 		}
 		fmt.Fprintln(p.Out)
 	}

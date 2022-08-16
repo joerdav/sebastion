@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/joerdav/sebastion"
+	"github.com/joerdav/sebastion/tui"
 )
 
 func openInputTTY() (*os.File, error) {
@@ -16,7 +17,7 @@ func openInputTTY() (*os.File, error) {
 }
 
 func main() {
-	p := sebastion.TUI(Panic{}, &CatSomething{}, &Spam{})
+	p := tui.TUI(Panic{}, &CatSomething{}, &Spam{})
 	if err := p.Run(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -26,6 +27,7 @@ func main() {
 type Spam struct {
 	message string
 	repeat  int
+	structa struct{}
 }
 
 func (cp *Spam) Details() (string, string) { return "Spam a message", "" }

@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	ErrTypeMismatch = errors.New("a type mismatch error has occured, this should not be possible, please raise an issue")
+	ErrTypeMismatch      = errors.New("a type mismatch error has occured, this should not be possible, please raise an issue")
+	ErrNilInputReference = errors.New("nil InputReference, an actions input is missing a reference")
 )
 
 type Action interface {
@@ -26,18 +27,21 @@ type Input struct {
 }
 
 type InputReference[T any] struct {
-	ptr *T
+	Ptr *T
 }
 
 func (si InputReference[T]) Set(v any) error {
+	if si.Ptr == nil {
+		return ErrNilInputReference
+	}
 	if s, ok := v.(T); ok {
-		*si.ptr = s
+		*si.Ptr = s
 		return nil
 	}
 	return ErrTypeMismatch
 }
 func (si InputReference[T]) String() string {
-	return fmt.Sprint(*si.ptr)
+	return fmt.Sprint(*si.Ptr)
 }
 
 func StringInput(v *string) InputValue {
