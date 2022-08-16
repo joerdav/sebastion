@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/joerdav/sebastion"
-	"github.com/joerdav/sebastion/tui"
+	sebastionui "github.com/joerdav/sebastion/ui"
 )
 
 func openInputTTY() (*os.File, error) {
@@ -17,7 +17,7 @@ func openInputTTY() (*os.File, error) {
 }
 
 func main() {
-	p := tui.TUI(Panic{}, &CatSomething{}, &Spam{})
+	p := sebastionui.TUI(Panic{}, &CatSomething{}, &Spam{})
 	if err := p.Run(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
