@@ -69,21 +69,19 @@ func row(name, description string) templ.Component {
 		if err != nil {
 			return err
 		}
-		// Whitespace (normalised)
-		_, err = templBuffer.WriteString(` `)
-		if err != nil {
-			return err
-		}
-		// Text
-		var_4 := `- `
-		_, err = templBuffer.WriteString(var_4)
-		if err != nil {
-			return err
-		}
-		// StringExpression
-		_, err = templBuffer.WriteString(templ.EscapeString(description))
-		if err != nil {
-			return err
+		// If
+		if description != "" {
+			// Text
+			var_4 := `&nbsp;- `
+			_, err = templBuffer.WriteString(var_4)
+			if err != nil {
+				return err
+			}
+			// StringExpression
+			_, err = templBuffer.WriteString(templ.EscapeString(description))
+			if err != nil {
+				return err
+			}
 		}
 		_, err = templBuffer.WriteString("</div>")
 		if err != nil {

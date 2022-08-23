@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -147,5 +148,8 @@ func (p TUIRunner) Run() error {
 	if !inp {
 		return errors.New("exited")
 	}
-	return a.Run()
+	ctx := sebastion.NewContext(context.Background())
+	ctx.Logger.SetOutput(p.Out)
+	ctx.Logger.SetFlags(0)
+	return a.Run(ctx)
 }

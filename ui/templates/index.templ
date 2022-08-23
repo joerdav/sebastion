@@ -11,5 +11,10 @@ templ Index(actions []sebastion.Action) {
 }
 
 templ row(name, description string) {
-	<div>{name} - {description}</div>
+	<div>
+		{name}
+		if description != "" {
+			&nbsp;- {description}
+		}
+	</div>
 }

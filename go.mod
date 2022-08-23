@@ -4,8 +4,8 @@ go 1.18
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.5
-	github.com/a-h/templ v0.2.185
 	github.com/gorilla/mux v1.8.0
+	github.com/a-h/templ v0.2.185
 )
 
 require (

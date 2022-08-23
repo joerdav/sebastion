@@ -63,8 +63,49 @@ func Layout() templ.Component {
 		if err != nil {
 			return err
 		}
+		// Element (standard)
+		// Element CSS
+		var var_2 templ.CSSClasses = templ.Classes(templ.Class("container"))
+		err = templ.RenderCSSItems(ctx, templBuffer, var_2...)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("<div")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(var_2.String()))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// TemplElement
+		err = title("Actions").Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
 		// Children
 		err = var_1.Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
 		if err != nil {
 			return err
 		}
@@ -90,9 +131,9 @@ func Nav() templ.Component {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_2 := templ.GetChildren(ctx)
-		if var_2 == nil {
-			var_2 = templ.NopComponent
+		var_3 := templ.GetChildren(ctx)
+		if var_3 == nil {
+			var_3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -141,7 +182,7 @@ func Nav() templ.Component {
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString(" href=\"https://bulma.io\"")
+		_, err = templBuffer.WriteString(" href=\"https://github.com/joerdav/sebastion\"")
 		if err != nil {
 			return err
 		}
@@ -150,8 +191,8 @@ func Nav() templ.Component {
 			return err
 		}
 		// Text
-		var_3 := `Sebastion`
-		_, err = templBuffer.WriteString(var_3)
+		var_4 := `Sebastion`
+		_, err = templBuffer.WriteString(var_4)
 		if err != nil {
 			return err
 		}
@@ -289,13 +330,17 @@ func Nav() templ.Component {
 		if err != nil {
 			return err
 		}
+		_, err = templBuffer.WriteString(" href=\"/\"")
+		if err != nil {
+			return err
+		}
 		_, err = templBuffer.WriteString(">")
 		if err != nil {
 			return err
 		}
 		// Text
-		var_4 := `Home`
-		_, err = templBuffer.WriteString(var_4)
+		var_5 := `Home`
+		_, err = templBuffer.WriteString(var_5)
 		if err != nil {
 			return err
 		}

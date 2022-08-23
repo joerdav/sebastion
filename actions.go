@@ -19,7 +19,7 @@ type Action interface {
 	// Inputs outlines the values required to run the Action.
 	Inputs() []Input
 	// Run should contain the code to run the action.
-	Run() error
+	Run(ctx Context) error
 }
 
 type InputValue interface {
