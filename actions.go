@@ -50,12 +50,25 @@ func (si InputReference[T]) String() string {
 	return fmt.Sprint(*si.Ptr)
 }
 
-func StringInput(v *string) InputValue {
+func NewStringInput(name, description string, value *string) Input {
+	return Input{name, description, StringInputValue(value)}
+}
+func NewIntInput(name, description string, value *int) Input {
+	return Input{name, description, IntInputValue(value)}
+}
+func NewBoolInput(name, description string, value *bool) Input {
+	return Input{name, description, BoolInputValue(value)}
+}
+func NewInput[T any](name, description string, value *T) Input {
+	return Input{name, description, InputReference[T]{value}}
+}
+
+func StringInputValue(v *string) InputValue {
 	return InputReference[string]{v}
 }
-func IntInput(v *int) InputValue {
+func IntInputValue(v *int) InputValue {
 	return InputReference[int]{v}
 }
-func BoolInput(v *bool) InputValue {
+func BoolInputValue(v *bool) InputValue {
 	return InputReference[bool]{v}
 }

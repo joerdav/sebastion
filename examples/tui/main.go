@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	p := sebastionui.TUI(&examples.Panic{}, &examples.CatSomething{}, &examples.Spam{})
+	p := sebastionui.TUI(&examples.Panic{}, &examples.EchoSomething{}, &examples.Spam{})
 	if err := p.Run(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

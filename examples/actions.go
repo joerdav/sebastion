@@ -10,16 +10,8 @@ type Spam struct {
 func (cp *Spam) Details() (string, string) { return "Spam a message", "" }
 func (cp *Spam) Inputs() []sebastion.Input {
 	return []sebastion.Input{
-		{
-			Name:        "Message",
-			Description: "The message to print",
-			Value:       sebastion.StringInput(&cp.message),
-		},
-		{
-			Name:        "Repetitions",
-			Description: "How many times",
-			Value:       sebastion.IntInput(&cp.repeat),
-		},
+		sebastion.NewInput("Message", "The message to print", &cp.message),
+		sebastion.NewInput("Repetitions", "How man times to repeat", &cp.repeat),
 	}
 }
 func (cp *Spam) Run(ctx sebastion.Context) error {
@@ -29,21 +21,17 @@ func (cp *Spam) Run(ctx sebastion.Context) error {
 	return nil
 }
 
-type CatSomething struct {
+type EchoSomething struct {
 	text string
 }
 
-func (c *CatSomething) Details() (string, string) { return "Cat", "Cat Something" }
-func (c *CatSomething) Inputs() []sebastion.Input {
+func (c *EchoSomething) Details() (string, string) { return "Echo", "Repeat whatever is passed in" }
+func (c *EchoSomething) Inputs() []sebastion.Input {
 	return []sebastion.Input{
-		{
-			Name:        "Text",
-			Description: "Some text to be cat-ed.",
-			Value:       sebastion.StringInput(&c.text),
-		},
+		sebastion.NewInput("Text", "Some text to be echo-ed.", &c.text),
 	}
 }
-func (c *CatSomething) Run(ctx sebastion.Context) error {
+func (c *EchoSomething) Run(ctx sebastion.Context) error {
 	ctx.Logger.Println(c.text)
 	return nil
 }
