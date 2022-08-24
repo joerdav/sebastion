@@ -8,14 +8,6 @@ import (
 	sebastionui "github.com/joerdav/sebastion/ui"
 )
 
-func openInputTTY() (*os.File, error) {
-	f, err := os.Open("/dev/tty")
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
 func main() {
 	p := sebastionui.TUI(&examples.Panic{}, &examples.CatSomething{}, &examples.Spam{})
 	if err := p.Run(); err != nil {
