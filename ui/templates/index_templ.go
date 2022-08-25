@@ -10,7 +10,11 @@ import "io"
 import "bytes"
 
 // GoExpression
-import "github.com/joerdav/sebastion"
+import (
+	"net/url"
+
+	"github.com/joerdav/sebastion"
+)
 
 func Index(actions []sebastion.Action) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
@@ -26,13 +30,21 @@ func Index(actions []sebastion.Action) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		// TemplElement
 		var_2 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
-			// For
-			for _, a := range actions {
-				// TemplElement
-				err = row(a.Details()).Render(ctx, templBuffer)
-				if err != nil {
-					return err
-				}
+			// Text
+			var_3 := `Choose an action:`
+			_, err = templBuffer.WriteString(var_3)
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
+			// TemplElement
+			err = dropdown(actions).Render(ctx, templBuffer)
+			if err != nil {
+				return err
 			}
 			return err
 		})
@@ -47,41 +59,262 @@ func Index(actions []sebastion.Action) templ.Component {
 	})
 }
 
-func row(name, description string) templ.Component {
+// GoExpression
+func dropdownText(a sebastion.Action) string {
+	n, _ := a.Details()
+	return n
+}
+func dropdownUrl(a sebastion.Action) string {
+	n, _ := a.Details()
+	path, _ := url.JoinPath("action", url.PathEscape(n))
+	return path
+}
+
+func toggleDropDown() templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_toggleDropDown_cf13`,
+		Function: `function __templ_toggleDropDown_cf13(){document.querySelector('#dropdown').classList.toggle('is-active');}`,
+		Call: templ.SafeScript(`__templ_toggleDropDown_cf13`, ),
+	}
+}
+
+func dropdown(actions []sebastion.Action) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_3 := templ.GetChildren(ctx)
-		if var_3 == nil {
-			var_3 = templ.NopComponent
+		var_4 := templ.GetChildren(ctx)
+		if var_4 == nil {
+			var_4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
-		_, err = templBuffer.WriteString("<div>")
+		_, err = templBuffer.WriteString("<div")
 		if err != nil {
 			return err
 		}
-		// StringExpression
-		_, err = templBuffer.WriteString(templ.EscapeString(name))
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"dropdown\"")
 		if err != nil {
 			return err
 		}
-		// If
-		if description != "" {
-			// Text
-			var_4 := `&nbsp;- `
-			_, err = templBuffer.WriteString(var_4)
+		_, err = templBuffer.WriteString(" id=\"dropdown\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		// Element Script
+		err = templ.RenderScriptItems(ctx, templBuffer, toggleDropDown())
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("<div")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" onClick=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		var var_5 templ.ComponentScript = toggleDropDown()
+		_, err = templBuffer.WriteString(var_5.Call)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" class=\"dropdown-trigger\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<button")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"button\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" aria-haspopup=\"true\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" aria-controls=\"dropdown-menu\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<span>")
+		if err != nil {
+			return err
+		}
+		// Text
+		var_6 := `Pick an action`
+		_, err = templBuffer.WriteString(var_6)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</span>")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<span")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"icon is-small\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<i")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"fas fa-angle-down\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" aria-hidden=\"true\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</i>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</span>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</button>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<div")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"dropdown-menu\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" id=\"dropdown-menu\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" role=\"menu\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<div")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"dropdown-content\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// For
+		for _, a := range actions {
+			// Element (standard)
+			_, err = templBuffer.WriteString("<a")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" href=")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			var var_7 templ.SafeURL = templ.SafeURL(dropdownUrl(a))
+			_, err = templBuffer.WriteString(templ.EscapeString(string(var_7)))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" class=\"dropdown-item\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}
 			// StringExpression
-			_, err = templBuffer.WriteString(templ.EscapeString(description))
+			_, err = templBuffer.WriteString(templ.EscapeString(dropdownText(a)))
 			if err != nil {
 				return err
 			}
+			_, err = templBuffer.WriteString("</a>")
+			if err != nil {
+				return err
+			}
+		}
+		_, err = templBuffer.WriteString("</div>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
+		if err != nil {
+			return err
 		}
 		_, err = templBuffer.WriteString("</div>")
 		if err != nil {
