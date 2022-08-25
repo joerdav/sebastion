@@ -10,6 +10,8 @@ var (
 	ErrTypeMismatch = errors.New("a type mismatch error has occured, this should not be possible, please raise an issue")
 	// ErrNilInputReference InputReference[T] types must be provided a pointer of type T that can be used.
 	ErrNilInputReference = errors.New("nil InputReference, an actions input is missing a reference")
+	// ErrSelectionNotAnOption MultiXSelect when setting a MultiSelect it must be an option.
+	ErrSelectionNotAnOption = errors.New("selection not an option")
 )
 
 // Action defines an interface for a script that takes some input and runs some code.
@@ -30,6 +32,35 @@ type InputValue interface {
 type Input struct {
 	Name, Description string
 	Value             InputValue
+}
+
+type MultiStringSelect struct {
+	Ptr     *string
+	Options []string
+}
+
+func (si MultiStringSelect) String() string {
+	return fmt.Sprint(*si.Ptr)
+}
+func (si MultiStringSelect) Set(v any) error {
+	if si.Ptr == nil {
+		return ErrNilInputReference
+	}
+	s, ok := v.(string)
+	if !ok {
+		return ErrTypeMismatch
+	}
+	found := false
+	for _, v2 := range si.Options {
+		if v2 == s {
+			found = true
+		}
+	}
+	if !found {
+		return ErrSelectionNotAnOption
+	}
+	*si.Ptr = s
+	return nil
 }
 
 type InputReference[T any] struct {
@@ -61,6 +92,9 @@ func NewBoolInput(name, description string, value *bool) Input {
 }
 func NewInput[T any](name, description string, value *T) Input {
 	return Input{name, description, InputReference[T]{value}}
+}
+func NewMultiStringInput(name, description string, value *string, options ...string) Input {
+	return Input{name, description, MultiStringSelect{value, options}}
 }
 
 func StringInputValue(v *string) InputValue {

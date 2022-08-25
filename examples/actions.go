@@ -10,7 +10,10 @@ type Spam struct {
 func (cp *Spam) Details() (string, string) { return "Spam a message", "" }
 func (cp *Spam) Inputs() []sebastion.Input {
 	return []sebastion.Input{
-		sebastion.NewInput("Message", "The message to print", &cp.message),
+		sebastion.NewMultiStringInput("Message", "The message to print", &cp.message,
+			"Hello, world!",
+			"Goodbye, world!",
+			"Hello, Sebastion!"),
 		sebastion.NewInput("Repetitions", "How man times to repeat", &cp.repeat),
 	}
 }

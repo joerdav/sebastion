@@ -89,11 +89,63 @@ func (p TUIRunner) getIntInput(i sebastion.Input) error {
 		}
 		return nil
 	}))
+	if err != nil {
+		return err
+	}
 	s, err := strconv.Atoi(inp)
 	if err != nil {
 		return errors.New("This response must be a number.")
 	}
 	return i.Value.Set(s)
+}
+
+func (p TUIRunner) getMultiStringSelectInput(i sebastion.Input) error {
+	s, ok := i.Value.(sebastion.MultiStringSelect)
+	if !ok {
+		return errors.New("input is not a MultiStringSelect")
+	}
+	inp := ""
+	prompt := &survey.Select{
+		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
+		Options: s.Options,
+	}
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
+	if err != nil {
+		return err
+	}
+	return i.Value.Set(inp)
+}
+
+func (p TUIRunner) getFloatInput(i sebastion.Input, bits int) error {
+	inp := ""
+	prompt := &survey.Input{
+		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
+	}
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(func(ans interface{}) error {
+		str, ok := ans.(string)
+		if !ok {
+			return errors.New("This response must be a number.")
+		}
+		_, err := strconv.ParseFloat(str, bits)
+		if err != nil {
+			return errors.New("This response must be a number.")
+		}
+		return nil
+	}))
+	if err != nil {
+		return err
+	}
+	s, err := strconv.ParseFloat(inp, bits)
+	if err != nil {
+		return errors.New("This response must be a number.")
+	}
+	return i.Value.Set(s)
+}
+func (p TUIRunner) getFloat64Input(i sebastion.Input) error {
+	return p.getFloatInput(i, 64)
+}
+func (p TUIRunner) getFloat32Input(i sebastion.Input) error {
+	return p.getFloatInput(i, 32)
 }
 
 func (p TUIRunner) getInputs(a sebastion.Action) error {
@@ -112,6 +164,12 @@ func (p TUIRunner) getInputs(a sebastion.Action) error {
 			err = p.getBoolInput(it)
 		case sebastion.InputReference[int]:
 			err = p.getIntInput(it)
+		case sebastion.InputReference[float64]:
+			err = p.getFloat64Input(it)
+		case sebastion.InputReference[float32]:
+			err = p.getFloat32Input(it)
+		case sebastion.MultiStringSelect:
+			err = p.getMultiStringSelectInput(it)
 		default:
 			return fmt.Errorf("unsupported input type [%+v]", ip)
 		}
