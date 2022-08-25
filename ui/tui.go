@@ -116,7 +116,7 @@ func (p TUIRunner) getMultiStringSelectInput(i sebastion.Input) error {
 	return i.Value.Set(inp)
 }
 
-func (p TUIRunner) getFloatInput(i sebastion.Input, bits int) error {
+func (p TUIRunner) getFloatInput(i sebastion.Input, bits int) (float64, error) {
 	inp := ""
 	prompt := &survey.Input{
 		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
@@ -133,19 +133,27 @@ func (p TUIRunner) getFloatInput(i sebastion.Input, bits int) error {
 		return nil
 	}))
 	if err != nil {
-		return err
+		return 0, err
 	}
 	s, err := strconv.ParseFloat(inp, bits)
 	if err != nil {
-		return errors.New("This response must be a number.")
+		return 0, errors.New("This response must be a number.")
+	}
+	return s, nil
+}
+func (p TUIRunner) getFloat64Input(i sebastion.Input) error {
+	s, err := p.getFloatInput(i, 64)
+	if err != nil {
+		return err
 	}
 	return i.Value.Set(s)
 }
-func (p TUIRunner) getFloat64Input(i sebastion.Input) error {
-	return p.getFloatInput(i, 64)
-}
 func (p TUIRunner) getFloat32Input(i sebastion.Input) error {
-	return p.getFloatInput(i, 32)
+	s, err := p.getFloatInput(i, 32)
+	if err != nil {
+		return err
+	}
+	return i.Value.Set(float32(s))
 }
 
 func (p TUIRunner) getInputs(a sebastion.Action) error {
