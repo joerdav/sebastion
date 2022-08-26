@@ -10,7 +10,16 @@ import "io"
 import "bytes"
 
 // GoExpression
-import "github.com/joerdav/sebastion"
+import (
+	"github.com/joerdav/sebastion"
+	"net/url"
+)
+
+func actionUrl(a sebastion.Action) string {
+	n := a.Details()
+	path, _ := url.JoinPath("/action", url.PathEscape(n.Name))
+	return path
+}
 
 func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
@@ -37,7 +46,32 @@ func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 				return err
 			}
 			// Element (standard)
-			_, err = templBuffer.WriteString("<form>")
+			_, err = templBuffer.WriteString("<form")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" method=\"POST\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" action=")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(templ.EscapeString(actionUrl(action)))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err
 			}
@@ -48,6 +82,66 @@ func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 				if err != nil {
 					return err
 				}
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"field\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"control\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<button")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"button is-link\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Text
+			var_3 := `Submit`
+			_, err = templBuffer.WriteString(var_3)
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</button>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
 			}
 			_, err = templBuffer.WriteString("</form>")
 			if err != nil {

@@ -34,7 +34,8 @@ func Web(actions ...sebastion.Action) (http.Handler, error) {
 func (wr *WebRunner) routes() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", wr.index)
-	r.HandleFunc("/action/{name}", wr.actionForm)
+	r.HandleFunc("/action/{name}", wr.actionForm).Methods(http.MethodGet)
+	r.HandleFunc("/action/{name}", wr.runAction).Methods(http.MethodPost)
 	wr.Router = r
 }
 
@@ -64,6 +65,42 @@ func (wr *WebRunner) actionForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (wr *WebRunner) runAction(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	name := vars["name"]
+	if name == "" {
+		w.WriteHeader(404)
+		return
+	}
+	a, ok := wr.getActionByName(name)
+	if !ok {
+		w.WriteHeader(404)
+		return
+	}
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(500)
+		return
+	}
+	for _, i := range a.Inputs() {
+		h := wr.getInputHandler(i)
+		v := r.FormValue(i.Name)
+		err := h.Set(i, v)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(500)
+			return
+		}
+	}
+	err = a.Run(sebastion.NewContext(r.Context()))
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(500)
+		return
+	}
+}
+
 func getHandler(hs []WebInputHandler, i sebastion.Input) (WebInputHandler, bool) {
 	for _, c := range hs {
 		if c.CanHandle(i) {
@@ -73,6 +110,15 @@ func getHandler(hs []WebInputHandler, i sebastion.Input) (WebInputHandler, bool)
 	return nil, false
 }
 
+func (wr *WebRunner) getInputHandler(i sebastion.Input) WebInputHandler {
+	if h, ok := getHandler(wr.customInputs, i); ok {
+		return h
+	}
+	if h, ok := getHandler(defaultHandlers, i); ok {
+		return h
+	}
+	return stringInput{}
+}
 func (wr *WebRunner) getInputComponents(a sebastion.Action) []templ.Component {
 	var components []templ.Component
 	for _, i := range a.Inputs() {
