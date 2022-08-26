@@ -95,11 +95,6 @@ func Layout() templ.Component {
 		if err != nil {
 			return err
 		}
-		// TemplElement
-		err = title("Actions").Render(ctx, templBuffer)
-		if err != nil {
-			return err
-		}
 		// Children
 		err = var_1.Render(ctx, templBuffer)
 		if err != nil {

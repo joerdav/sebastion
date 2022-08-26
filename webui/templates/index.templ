@@ -8,18 +8,15 @@ import (
 
 templ Index(actions []sebastion.Action) {
 	@Layout() {
+		@title("Actions")
 		Choose an action:
 		@dropdown(actions)
 	}
 }
 
-func dropdownText(a sebastion.Action) string {
-	n, _ := a.Details()
-	return n
-}
 func dropdownUrl(a sebastion.Action) string {
-	n, _ := a.Details()
-	path, _ := url.JoinPath("action", url.PathEscape(n))
+	n := a.Details()
+	path, _ := url.JoinPath("action", url.PathEscape(n.Name))
 	return path
 }
 
@@ -34,7 +31,7 @@ templ dropdown(actions []sebastion.Action) {
 		<div class="dropdown-menu" id="dropdown-menu" role="menu">
 			<div class="dropdown-content">
 				for _, a := range actions {
-					<a href={templ.SafeURL(dropdownUrl(a))} class="dropdown-item">{dropdownText(a)}</a>
+					<a href={templ.SafeURL(dropdownUrl(a))} class="dropdown-item">{a.Details().Name}</a>
 				}
 			</div>
 		</div>

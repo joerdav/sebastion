@@ -30,6 +30,16 @@ func Index(actions []sebastion.Action) templ.Component {
 		ctx = templ.ClearChildren(ctx)
 		// TemplElement
 		var_2 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+			// TemplElement
+			err = title("Actions").Render(ctx, templBuffer)
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
 			// Text
 			var_3 := `Choose an action:`
 			_, err = templBuffer.WriteString(var_3)
@@ -60,13 +70,9 @@ func Index(actions []sebastion.Action) templ.Component {
 }
 
 // GoExpression
-func dropdownText(a sebastion.Action) string {
-	n, _ := a.Details()
-	return n
-}
 func dropdownUrl(a sebastion.Action) string {
-	n, _ := a.Details()
-	path, _ := url.JoinPath("action", url.PathEscape(n))
+	n := a.Details()
+	path, _ := url.JoinPath("action", url.PathEscape(n.Name))
 	return path
 }
 
@@ -299,7 +305,7 @@ func dropdown(actions []sebastion.Action) templ.Component {
 				return err
 			}
 			// StringExpression
-			_, err = templBuffer.WriteString(templ.EscapeString(dropdownText(a)))
+			_, err = templBuffer.WriteString(templ.EscapeString(a.Details().Name))
 			if err != nil {
 				return err
 			}

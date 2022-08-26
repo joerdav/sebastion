@@ -1,0 +1,15 @@
+package templates
+
+import "github.com/joerdav/sebastion"
+
+templ Action(action sebastion.Action, inputs []templ.Component) {
+	@Layout() {
+		@title(action.Details().Name)
+		<form>
+			for _, c := range inputs {
+				@c
+			}
+		</form>
+	}
+}
+

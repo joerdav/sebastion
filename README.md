@@ -37,7 +37,7 @@ go install github.com/cespare/reflex@v0.3.1
 
 ### web-example
 
-Run the web example located at `example/web/main.go`.
+Run the web example located at `examples/web/main.go`.
 
 ```shell
 reflex -r '.*\.(go|templ)' -R '.*_templ\.go' -s -- sh -c 'templ generate && go run examples/web/main.go'
@@ -45,10 +45,10 @@ reflex -r '.*\.(go|templ)' -R '.*_templ\.go' -s -- sh -c 'templ generate && go r
 
 ### tui-example
 
-Run the cli example located at `example/tui/main.go`.
+Run the cli example located at `examples/tui/main.go`.
 
 ```shell
-go run example/tui/main.go
+go run examples/tui/main.go
 ```
 
 ### build-templates

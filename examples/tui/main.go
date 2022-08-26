@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/joerdav/sebastion/examples"
-	sebastionui "github.com/joerdav/sebastion/ui"
+	sebastionui "github.com/joerdav/sebastion/tui"
 )
 
 func main() {

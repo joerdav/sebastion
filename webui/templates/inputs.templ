@@ -1,0 +1,48 @@
+package templates
+
+import (
+	"github.com/joerdav/sebastion"
+	"fmt"
+)
+
+templ NoInputFound(s sebastion.Input) {
+	<div class="field"><label class="label">No WebInputHandler found for { fmt.Sprintf("%T", s.Value) }</label></div>
+}
+
+templ StringInput(s sebastion.Input) {
+	<div class="field">
+		<label class="label">{ s.Name }</label>
+		<div class="control"><input name={ s.Name } class="input" type="text" placeholder={ s.Name }/></div>
+		<p class="help">{ s.Description }</p>
+	</div>
+}
+
+templ IntInput(s sebastion.Input) {
+	<div class="field">
+		<label class="label">{ s.Name }</label>
+		<div class="control"><input name={ s.Name } class="input" type="number" placeholder={ s.Name }/></div>
+		<p class="help">{ s.Description }</p>
+	</div>
+}
+
+templ BoolInput(s sebastion.Input) {
+	<div class="field">
+		<div class="control"><label class="label">{ s.Name }</label><input name={ s.Name } type="checkbox"/></div>
+		<p class="help">{ s.Description }</p>
+	</div>
+}
+
+templ MultiStringInput(s sebastion.Input) {
+	<div class="field">
+		<label class="label">{ s.Name }</label>
+		<div class="select">
+			<select name={ s.Name }>
+				for _, o := range s.Value.(sebastion.MultiStringSelect).Options {
+				<option>{ o }</option>
+				}
+			</select>
+		</div>
+		<p class="help">{ s.Description }</p>
+	</div>
+}
+

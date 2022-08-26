@@ -14,10 +14,14 @@ var (
 	ErrSelectionNotAnOption = errors.New("selection not an option")
 )
 
+type ActionDetails struct {
+	Name, Description string
+}
+
 // Action defines an interface for a script that takes some input and runs some code.
 type Action interface {
 	// Details should return the name and an optional description of the Action.
-	Details() (name, description string)
+	Details() ActionDetails
 	// Inputs outlines the values required to run the Action.
 	Inputs() []Input
 	// Run should contain the code to run the action.
