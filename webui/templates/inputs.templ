@@ -1,13 +1,6 @@
 package templates
 
-import (
-	"github.com/joerdav/sebastion"
-	"fmt"
-)
-
-templ NoInputFound(s sebastion.Input) {
-	<div class="field"><label class="label">No WebInputHandler found for { fmt.Sprintf("%T", s.Value) }</label></div>
-}
+import "github.com/joerdav/sebastion"
 
 templ StringInput(s sebastion.Input) {
 	<div class="field">

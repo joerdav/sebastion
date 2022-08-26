@@ -84,7 +84,7 @@ func (wr *WebRunner) getInputComponents(a sebastion.Action) []templ.Component {
 			components = append(components, h.Template(i))
 			continue
 		}
-		components = append(components, templates.NoInputFound(i))
+		components = append(components, templates.StringInput(i))
 	}
 	return components
 }
