@@ -49,6 +49,38 @@ func Layout() templ.Component {
 		if err != nil {
 			return err
 		}
+// RawElement
+		_, err = templBuffer.WriteString("<script")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" type=\"text/javascript\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" crossorigin=\"anonymous\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" src=\"https://unpkg.com/@hotwired/turbo@7.1.0/dist/turbo.es2017-umd.js\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+// Text
+var_2 := ``
+_, err = templBuffer.WriteString(var_2)
+if err != nil {
+	return err
+}
+		_, err = templBuffer.WriteString("</script>")
+		if err != nil {
+			return err
+		}
 		_, err = templBuffer.WriteString("</head>")
 		if err != nil {
 			return err
@@ -65,8 +97,8 @@ func Layout() templ.Component {
 		}
 		// Element (standard)
 		// Element CSS
-		var var_2 templ.CSSClasses = templ.Classes(templ.Class("container"))
-		err = templ.RenderCSSItems(ctx, templBuffer, var_2...)
+		var var_3 templ.CSSClasses = templ.Classes(templ.Class("container"), templ.Class("p-5"))
+		err = templ.RenderCSSItems(ctx, templBuffer, var_3...)
 		if err != nil {
 			return err
 		}
@@ -83,7 +115,7 @@ func Layout() templ.Component {
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString(templ.EscapeString(var_2.String()))
+		_, err = templBuffer.WriteString(templ.EscapeString(var_3.String()))
 		if err != nil {
 			return err
 		}
@@ -126,9 +158,9 @@ func Nav() templ.Component {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_3 := templ.GetChildren(ctx)
-		if var_3 == nil {
-			var_3 = templ.NopComponent
+		var_4 := templ.GetChildren(ctx)
+		if var_4 == nil {
+			var_4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -137,7 +169,7 @@ func Nav() templ.Component {
 			return err
 		}
 		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"navbar\"")
+		_, err = templBuffer.WriteString(" class=\"navbar is-black has-shadow\"")
 		if err != nil {
 			return err
 		}
@@ -168,140 +200,6 @@ func Nav() templ.Component {
 			return err
 		}
 		// Element (standard)
-		_, err = templBuffer.WriteString("<a")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"navbar-item\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" href=\"https://github.com/joerdav/sebastion\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		// Text
-		var_4 := `Sebastion`
-		_, err = templBuffer.WriteString(var_4)
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</a>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<a")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" role=\"button\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" class=\"navbar-burger\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" aria-label=\"menu\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" aria-expanded=\"false\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" data-target=\"navbarBasicExample\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<span")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" aria-hidden=\"true\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</span>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<span")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" aria-hidden=\"true\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</span>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<span")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" aria-hidden=\"true\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</span>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</a>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</div>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<div")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"navbar-menu\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
 		_, err = templBuffer.WriteString("<div")
 		if err != nil {
 			return err
@@ -321,7 +219,7 @@ func Nav() templ.Component {
 			return err
 		}
 		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"navbar-item\"")
+		_, err = templBuffer.WriteString(" class=\"navbar-item has-text-weight-bold is-size-3\"")
 		if err != nil {
 			return err
 		}
@@ -334,7 +232,7 @@ func Nav() templ.Component {
 			return err
 		}
 		// Text
-		var_5 := `Home`
+		var_5 := `Sebastion`
 		_, err = templBuffer.WriteString(var_5)
 		if err != nil {
 			return err

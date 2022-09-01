@@ -1,0 +1,32 @@
+package templates
+
+templ LogComponent(text string) {
+	<textarea class="textarea is-black" readonly="true" id="action-logs">{ text }</textarea>
+}
+
+templ Log(outputId string, text string) {
+	@Layout() {
+		@LogInit(outputId, text)
+	}
+}
+
+templ LogInit(outputId string, text string) {
+	<turbo-frame id="log-frame">
+		@LogComponent(text)
+		<input type="hidden" id="outputid" value={ outputId }/>
+		<script>
+			var id = document.querySelector('#outputid').value
+			console.log(id)
+			Turbo.connectStreamSource(new WebSocket(`ws://${window.location.host}/output/${id}/ws`));
+		</script>
+	</turbo-frame>
+}
+
+templ LogStream(text string) {
+	<turbo-stream action="replace" targets="#action-logs">
+		<template>
+			@LogComponent(text)
+		</template>
+	</turbo-stream>
+}
+

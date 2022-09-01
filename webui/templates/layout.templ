@@ -3,11 +3,12 @@ package templates
 templ Layout() {
 	<html>
 		<head>
-			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" />
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
+			<script type="text/javascript" crossorigin="anonymous" src="https://unpkg.com/@hotwired/turbo@7.1.0/dist/turbo.es2017-umd.js"></script>
 		</head>
 		<body>
 			@Nav()
-			<div class={templ.Classes(templ.Class("container"))}>
+			<div class={ templ.Classes(templ.Class("container"), templ.Class("p-5")) }>
 				{ children... }
 			</div>
 		</body>
@@ -15,25 +16,10 @@ templ Layout() {
 }
 
 templ Nav() {
-	<nav class="navbar" role="navigation" aria-label="main navigation">
-	  <div class="navbar-brand">
-	    <a class="navbar-item" href="https://github.com/joerdav/sebastion">
-	      Sebastion
-	    </a>
-
-	    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-	      <span aria-hidden="true"></span>
-	      <span aria-hidden="true"></span>
-	      <span aria-hidden="true"></span>
-	    </a>
-	  </div>
-
-	  <div class="navbar-menu">
-	    <div class="navbar-start">
-	      <a class="navbar-item" href="/">
-		Home
-	      </a>
-	    </div>
-	  </div>
+	<nav class="navbar is-black has-shadow" role="navigation" aria-label="main navigation">
+		<div class="navbar-brand">
+			<div class="navbar-start"><a class="navbar-item has-text-weight-bold is-size-3" href="/">Sebastion</a></div>
+		</div>
 	</nav>
 }
+

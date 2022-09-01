@@ -46,6 +46,48 @@ func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 				return err
 			}
 			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"card\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"card-content\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"content\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
 			_, err = templBuffer.WriteString("<form")
 			if err != nil {
 				return err
@@ -68,6 +110,10 @@ func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 				return err
 			}
 			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" data-turbo-frame=\"log-frame\"")
 			if err != nil {
 				return err
 			}
@@ -117,7 +163,7 @@ func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 				return err
 			}
 			// Element Attributes
-			_, err = templBuffer.WriteString(" class=\"button is-link\"")
+			_, err = templBuffer.WriteString(" class=\"button is-black is-radiusless\"")
 			if err != nil {
 				return err
 			}
@@ -144,6 +190,100 @@ func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 				return err
 			}
 			_, err = templBuffer.WriteString("</form>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"card mt-5\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"card-content\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<div")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"content\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<turbo-frame")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" id=\"log-frame\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// TemplElement
+			err = LogComponent("").Render(ctx, templBuffer)
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</turbo-frame>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</div>")
 			if err != nil {
 				return err
 			}

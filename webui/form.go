@@ -1,4 +1,4 @@
-package ui
+package webui
 
 import (
 	"github.com/a-h/templ"

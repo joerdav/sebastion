@@ -4,8 +4,11 @@ go 1.18
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.5
-	github.com/gorilla/mux v1.8.0
 	github.com/a-h/templ v0.2.185
+	github.com/google/uuid v1.3.0
+	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/websocket v1.5.0
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
 
 require (

@@ -1,6 +1,8 @@
 package examples
 
 import (
+	"time"
+
 	"github.com/joerdav/sebastion"
 )
 
@@ -24,6 +26,7 @@ func (cp *Spam) Inputs() []sebastion.Input {
 func (cp *Spam) Run(ctx sebastion.Context) error {
 	for i := 0; i < cp.repeat; i++ {
 		ctx.Logger.Println(cp.message)
+		time.Sleep(time.Second)
 	}
 	return nil
 }
