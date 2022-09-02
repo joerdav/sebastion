@@ -1,50 +1,74 @@
 package webui
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"io"
 	"log"
 	"os"
+	"sync"
 
 	"github.com/joerdav/sebastion"
 )
+
+func newOutputs() outputs {
+	return outputs{make(map[string]io.Reader)}
+}
+
+type outputs struct {
+	readerMap map[string]io.Reader
+}
+
+func (o *outputs) new(outid string) (io.Writer, func()) {
+	r, w := io.Pipe()
+	o.readerMap[outid] = bufio.NewReader(r)
+	return w, func() {
+		w.Close()
+		delete(o.readerMap, outid)
+	}
+}
+
+type output struct {
+	buf  *bytes.Buffer
+	done bool
+	lock *sync.Mutex
+}
+
+func newWorkerPool(count int, outputs outputs) chan<- startAction {
+	c := make(chan startAction)
+	for i := 0; i < count; i++ {
+		go worker(i, c, outputs)
+	}
+	return c
+}
 
 type startAction struct {
 	action sebastion.Action
 	out    string
 }
 
-func (wr *WebRunner) workers(count int, jobs <-chan startAction) {
-	for i := 0; i < count; i++ {
-		go wr.worker(i, jobs)
-	}
-}
-
-func (wr *WebRunner) worker(idx int, jobs <-chan startAction) {
+func worker(idx int, jobs <-chan startAction, outputs outputs) {
 	log.Println("Worker", idx, "waiting for work.")
 	for j := range jobs {
 		log.Println("Worker", idx, "got a job.")
-		bw, close := wr.newOut(j.out)
+		bw, close := outputs.new(j.out)
 		defer close()
 		w := io.MultiWriter(bw, os.Stdout)
-		ctx := sebastion.NewContext(context.Background())
-		ctx.Logger = log.New(w, "", log.LstdFlags)
-		ctx.Logger.SetOutput(w)
-		ctx.Logger.Println("Processing Job", j.action.Details().Name)
-		err := j.action.Run(ctx)
-		if err != nil {
-			ctx.Logger.Println("Error: ", err)
-		}
-		ctx.Logger.Println("Done.", err)
+		doWork(j, w)
 		close()
 	}
 }
 
-func (wr *WebRunner) newOut(outid string) (io.Writer, func()) {
-	b := new(bytes.Buffer)
-	wr.outputs[outid] = b
-	return b, func() {
-		delete(wr.outputs, outid)
+func doWork(job startAction, w io.Writer) {
+	ctx := sebastion.NewContext(context.Background())
+	ctx.Logger = log.New(w, "", log.LstdFlags)
+	ctx.Logger.SetOutput(w)
+	ctx.Logger.Println("Processing Job", job.action.Details().Name)
+	err := job.action.Run(ctx)
+	if err != nil {
+		ctx.Logger.Println("Error: ", err)
+		return
 	}
+	ctx.Logger.Println("Done.")
 }

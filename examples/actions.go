@@ -1,10 +1,27 @@
 package examples
 
 import (
+	"errors"
+	"strings"
 	"time"
 
 	"github.com/joerdav/sebastion"
 )
+
+// Validators
+
+func noEmails(v string) error {
+	if strings.Contains(v, "@") {
+		return errors.New("no emails allowed")
+	}
+	return nil
+}
+func positive(v int) error {
+	if v <= 0 {
+		return errors.New("must be positive")
+	}
+	return nil
+}
 
 type Spam struct {
 	message string
@@ -20,7 +37,7 @@ func (cp *Spam) Inputs() []sebastion.Input {
 			"Hello, world!",
 			"Goodbye, world!",
 			"Hello, Sebastion!"),
-		sebastion.NewInput("Repetitions", "How many times to repeat", &cp.repeat),
+		sebastion.NewInput("Repetitions", "How many times to repeat", &cp.repeat, positive),
 	}
 }
 func (cp *Spam) Run(ctx sebastion.Context) error {
@@ -40,7 +57,7 @@ func (cp *EchoSomething) Details() sebastion.ActionDetails {
 }
 func (c *EchoSomething) Inputs() []sebastion.Input {
 	return []sebastion.Input{
-		sebastion.NewInput("Text", "Some text to be echo-ed.", &c.text),
+		sebastion.NewInput("Text", "Some text to be echo-ed.", &c.text, noEmails),
 	}
 }
 func (c *EchoSomething) Run(ctx sebastion.Context) error {

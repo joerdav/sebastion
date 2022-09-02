@@ -117,6 +117,10 @@ func Action(action sebastion.Action, inputs []templ.Component) templ.Component {
 			if err != nil {
 				return err
 			}
+			_, err = templBuffer.WriteString(" data-turbo-action=\"advance\"")
+			if err != nil {
+				return err
+			}
 			_, err = templBuffer.WriteString(">")
 			if err != nil {
 				return err

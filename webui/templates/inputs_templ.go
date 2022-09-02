@@ -10,9 +10,18 @@ import "io"
 import "bytes"
 
 // GoExpression
-import "github.com/joerdav/sebastion"
+import (
+	"fmt"
+	"strings"
 
-func StringInput(s sebastion.Input) templ.Component {
+	"github.com/joerdav/sebastion"
+)
+
+func inputId(name string) string {
+	return strings.Join(strings.Fields(name), "-")
+}
+
+func InputWrapper(name string, c templ.Component) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
@@ -34,10 +43,121 @@ func StringInput(s sebastion.Input) templ.Component {
 		if err != nil {
 			return err
 		}
+		_, err = templBuffer.WriteString(" id=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(inputId(name)))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
 		_, err = templBuffer.WriteString(">")
 		if err != nil {
 			return err
 		}
+		// TemplElement
+		err = c.Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
+		if err != nil {
+			return err
+		}
+		if !templIsBuffer {
+			_, err = io.Copy(w, templBuffer)
+		}
+		return err
+	})
+}
+
+func ReplaceInput(name string, c templ.Component) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+		templBuffer, templIsBuffer := w.(*bytes.Buffer)
+		if !templIsBuffer {
+			templBuffer = new(bytes.Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		var_2 := templ.GetChildren(ctx)
+		if var_2 == nil {
+			var_2 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		// Element (standard)
+		_, err = templBuffer.WriteString("<turbo-stream")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" action=\"update\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" targets=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(fmt.Sprintf("#%s", inputId(name))))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<template>")
+		if err != nil {
+			return err
+		}
+		// TemplElement
+		err = c.Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</template>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</turbo-stream>")
+		if err != nil {
+			return err
+		}
+		if !templIsBuffer {
+			_, err = io.Copy(w, templBuffer)
+		}
+		return err
+	})
+}
+
+func StringInput(s sebastion.Input, e string) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+		templBuffer, templIsBuffer := w.(*bytes.Buffer)
+		if !templIsBuffer {
+			templBuffer = new(bytes.Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		var_3 := templ.GetChildren(ctx)
+		if var_3 == nil {
+			var_3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
 		_, err = templBuffer.WriteString("<label")
 		if err != nil {
@@ -60,6 +180,32 @@ func StringInput(s sebastion.Input) templ.Component {
 		_, err = templBuffer.WriteString("</label>")
 		if err != nil {
 			return err
+		}
+		// If
+		if e != "" {
+			// Element (standard)
+			_, err = templBuffer.WriteString("<p")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"help is-danger\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// StringExpression
+			_, err = templBuffer.WriteString(templ.EscapeString(e))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</p>")
+			if err != nil {
+				return err
+			}
 		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<div")
@@ -98,6 +244,22 @@ func StringInput(s sebastion.Input) templ.Component {
 			return err
 		}
 		_, err = templBuffer.WriteString(" class=\"input\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" value=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(s.Value.String()))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
 		if err != nil {
 			return err
 		}
@@ -152,10 +314,6 @@ func StringInput(s sebastion.Input) templ.Component {
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString("</div>")
-		if err != nil {
-			return err
-		}
 		if !templIsBuffer {
 			_, err = io.Copy(w, templBuffer)
 		}
@@ -163,32 +321,18 @@ func StringInput(s sebastion.Input) templ.Component {
 	})
 }
 
-func IntInput(s sebastion.Input) templ.Component {
+func IntInput(s sebastion.Input, e string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_2 := templ.GetChildren(ctx)
-		if var_2 == nil {
-			var_2 = templ.NopComponent
+		var_4 := templ.GetChildren(ctx)
+		if var_4 == nil {
+			var_4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		// Element (standard)
-		_, err = templBuffer.WriteString("<div")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"field\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<label")
 		if err != nil {
@@ -211,6 +355,32 @@ func IntInput(s sebastion.Input) templ.Component {
 		_, err = templBuffer.WriteString("</label>")
 		if err != nil {
 			return err
+		}
+		// If
+		if e != "" {
+			// Element (standard)
+			_, err = templBuffer.WriteString("<p")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"help is-danger\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// StringExpression
+			_, err = templBuffer.WriteString(templ.EscapeString(e))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</p>")
+			if err != nil {
+				return err
+			}
 		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<div")
@@ -249,6 +419,22 @@ func IntInput(s sebastion.Input) templ.Component {
 			return err
 		}
 		_, err = templBuffer.WriteString(" class=\"input\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" value=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(s.Value.String()))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
 		if err != nil {
 			return err
 		}
@@ -303,10 +489,6 @@ func IntInput(s sebastion.Input) templ.Component {
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString("</div>")
-		if err != nil {
-			return err
-		}
 		if !templIsBuffer {
 			_, err = io.Copy(w, templBuffer)
 		}
@@ -314,32 +496,18 @@ func IntInput(s sebastion.Input) templ.Component {
 	})
 }
 
-func BoolInput(s sebastion.Input) templ.Component {
+func BoolInput(s sebastion.Input, e string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_3 := templ.GetChildren(ctx)
-		if var_3 == nil {
-			var_3 = templ.NopComponent
+		var_5 := templ.GetChildren(ctx)
+		if var_5 == nil {
+			var_5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		// Element (standard)
-		_, err = templBuffer.WriteString("<div")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"field\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<div")
 		if err != nil {
@@ -399,6 +567,22 @@ func BoolInput(s sebastion.Input) templ.Component {
 		if err != nil {
 			return err
 		}
+		_, err = templBuffer.WriteString(" value=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(s.Value.String()))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
 		_, err = templBuffer.WriteString(" type=\"checkbox\"")
 		if err != nil {
 			return err
@@ -410,6 +594,32 @@ func BoolInput(s sebastion.Input) templ.Component {
 		_, err = templBuffer.WriteString("</div>")
 		if err != nil {
 			return err
+		}
+		// If
+		if e != "" {
+			// Element (standard)
+			_, err = templBuffer.WriteString("<p")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"help is-danger\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// StringExpression
+			_, err = templBuffer.WriteString(templ.EscapeString(e))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</p>")
+			if err != nil {
+				return err
+			}
 		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<p")
@@ -434,10 +644,6 @@ func BoolInput(s sebastion.Input) templ.Component {
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString("</div>")
-		if err != nil {
-			return err
-		}
 		if !templIsBuffer {
 			_, err = io.Copy(w, templBuffer)
 		}
@@ -445,32 +651,18 @@ func BoolInput(s sebastion.Input) templ.Component {
 	})
 }
 
-func MultiStringInput(s sebastion.Input) templ.Component {
+func MultiStringInput(s sebastion.Input, e string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_4 := templ.GetChildren(ctx)
-		if var_4 == nil {
-			var_4 = templ.NopComponent
+		var_6 := templ.GetChildren(ctx)
+		if var_6 == nil {
+			var_6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		// Element (standard)
-		_, err = templBuffer.WriteString("<div")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"field\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<label")
 		if err != nil {
@@ -493,6 +685,32 @@ func MultiStringInput(s sebastion.Input) templ.Component {
 		_, err = templBuffer.WriteString("</label>")
 		if err != nil {
 			return err
+		}
+		// If
+		if e != "" {
+			// Element (standard)
+			_, err = templBuffer.WriteString("<p")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" class=\"help is-danger\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// StringExpression
+			_, err = templBuffer.WriteString(templ.EscapeString(e))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</p>")
+			if err != nil {
+				return err
+			}
 		}
 		// Element (standard)
 		_, err = templBuffer.WriteString("<div")
@@ -523,6 +741,22 @@ func MultiStringInput(s sebastion.Input) templ.Component {
 			return err
 		}
 		_, err = templBuffer.WriteString(templ.EscapeString(s.Name))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" value=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(s.Value.String()))
 		if err != nil {
 			return err
 		}
@@ -579,10 +813,6 @@ func MultiStringInput(s sebastion.Input) templ.Component {
 			return err
 		}
 		_, err = templBuffer.WriteString("</p>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</div>")
 		if err != nil {
 			return err
 		}

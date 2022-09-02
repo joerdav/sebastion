@@ -8,6 +8,24 @@ import "github.com/a-h/templ"
 import "context"
 import "io"
 import "bytes"
+import "strings"
+
+func logFont() templ.CSSClass {
+	var templCSSBuilder strings.Builder
+	templCSSBuilder.WriteString(`font-family:ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;`)
+	templCSSID := templ.CSSID(`logFont`, templCSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID: templCSSID,
+		Class: templ.SafeCSS(`.` + templCSSID + `{` + templCSSBuilder.String() + `}`),
+	}
+}
+
+// GoExpression
+var logStyle = templ.Classes(
+	templ.Class("textarea"),
+	templ.Class("is-black"),
+	logFont(),
+)
 
 func LogComponent(text string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
@@ -22,12 +40,30 @@ func LogComponent(text string) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
+		// Element CSS
+		var var_2 templ.CSSClasses = logStyle
+		err = templ.RenderCSSItems(ctx, templBuffer, var_2...)
+		if err != nil {
+			return err
+		}
 		_, err = templBuffer.WriteString("<textarea")
 		if err != nil {
 			return err
 		}
 		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"textarea is-black\"")
+		_, err = templBuffer.WriteString(" class=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(var_2.String()))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
 		if err != nil {
 			return err
 		}
@@ -66,13 +102,13 @@ func Log(outputId string, text string) templ.Component {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_2 := templ.GetChildren(ctx)
-		if var_2 == nil {
-			var_2 = templ.NopComponent
+		var_3 := templ.GetChildren(ctx)
+		if var_3 == nil {
+			var_3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// TemplElement
-		var_3 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+		var_4 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 			// TemplElement
 			err = LogInit(outputId, text).Render(ctx, templBuffer)
 			if err != nil {
@@ -80,7 +116,7 @@ func Log(outputId string, text string) templ.Component {
 			}
 			return err
 		})
-		err = Layout().Render(templ.WithChildren(ctx, var_3), templBuffer)
+		err = Layout().Render(templ.WithChildren(ctx, var_4), templBuffer)
 		if err != nil {
 			return err
 		}
@@ -98,9 +134,9 @@ func LogInit(outputId string, text string) templ.Component {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_4 := templ.GetChildren(ctx)
-		if var_4 == nil {
-			var_4 = templ.NopComponent
+		var_5 := templ.GetChildren(ctx)
+		if var_5 == nil {
+			var_5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -162,12 +198,11 @@ func LogInit(outputId string, text string) templ.Component {
 			return err
 		}
 // Text
-var_5 := `
+var_6 := `
 			var id = document.querySelector('#outputid').value
-			console.log(id)
 			Turbo.connectStreamSource(new WebSocket(` + "`" + `ws://${window.location.host}/output/${id}/ws` + "`" + `));
 		`
-_, err = templBuffer.WriteString(var_5)
+_, err = templBuffer.WriteString(var_6)
 if err != nil {
 	return err
 }
@@ -193,9 +228,9 @@ func LogStream(text string) templ.Component {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_6 := templ.GetChildren(ctx)
-		if var_6 == nil {
-			var_6 = templ.NopComponent
+		var_7 := templ.GetChildren(ctx)
+		if var_7 == nil {
+			var_7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -204,7 +239,7 @@ func LogStream(text string) templ.Component {
 			return err
 		}
 		// Element Attributes
-		_, err = templBuffer.WriteString(" action=\"replace\"")
+		_, err = templBuffer.WriteString(" action=\"update\"")
 		if err != nil {
 			return err
 		}
@@ -221,8 +256,8 @@ func LogStream(text string) templ.Component {
 		if err != nil {
 			return err
 		}
-		// TemplElement
-		err = LogComponent(text).Render(ctx, templBuffer)
+		// StringExpression
+		_, err = templBuffer.WriteString(templ.EscapeString(text))
 		if err != nil {
 			return err
 		}

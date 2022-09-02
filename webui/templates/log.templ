@@ -1,7 +1,17 @@
 package templates
 
+css logFont() {
+	font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+}
+
+var logStyle = templ.Classes(
+	templ.Class("textarea"),
+	templ.Class("is-black"),
+	logFont(),
+)
+
 templ LogComponent(text string) {
-	<textarea class="textarea is-black" readonly="true" id="action-logs">{ text }</textarea>
+	<textarea class={logStyle} readonly="true" id="action-logs">{ text }</textarea>
 }
 
 templ Log(outputId string, text string) {
@@ -16,16 +26,15 @@ templ LogInit(outputId string, text string) {
 		<input type="hidden" id="outputid" value={ outputId }/>
 		<script>
 			var id = document.querySelector('#outputid').value
-			console.log(id)
 			Turbo.connectStreamSource(new WebSocket(`ws://${window.location.host}/output/${id}/ws`));
 		</script>
 	</turbo-frame>
 }
 
 templ LogStream(text string) {
-	<turbo-stream action="replace" targets="#action-logs">
+	<turbo-stream action="update" targets="#action-logs">
 		<template>
-			@LogComponent(text)
+			{ text }
 		</template>
 	</turbo-stream>
 }

@@ -68,23 +68,33 @@ func (si MultiStringSelect) Set(v any) error {
 }
 
 type InputReference[T any] struct {
-	Ptr *T
+	Ptr        *T
+	validators []func(T) error
 }
 
 func (si InputReference[T]) Set(v any) error {
 	if si.Ptr == nil {
 		return ErrNilInputReference
 	}
-	if s, ok := v.(T); ok {
-		*si.Ptr = s
-		return nil
+	s, ok := v.(T)
+	if !ok {
+		return ErrTypeMismatch
 	}
-	return ErrTypeMismatch
+	for _, v := range si.validators {
+		err := v(s)
+		if err != nil {
+			return err
+		}
+	}
+	*si.Ptr = s
+	return nil
 }
 func (si InputReference[T]) String() string {
 	return fmt.Sprint(*si.Ptr)
 }
-
+func (si *InputReference[T]) AddValidator(v ...func(T) error) {
+	si.validators = append(si.validators, v...)
+}
 func NewStringInput(name, description string, value *string) Input {
 	return Input{name, description, StringInputValue(value)}
 }
@@ -94,19 +104,19 @@ func NewIntInput(name, description string, value *int) Input {
 func NewBoolInput(name, description string, value *bool) Input {
 	return Input{name, description, BoolInputValue(value)}
 }
-func NewInput[T any](name, description string, value *T) Input {
-	return Input{name, description, InputReference[T]{value}}
+func NewInput[T any](name, description string, value *T, v ...func(T) error) Input {
+	return Input{name, description, InputReference[T]{value, v}}
 }
 func NewMultiStringInput(name, description string, value *string, options ...string) Input {
 	return Input{name, description, MultiStringSelect{value, options}}
 }
 
 func StringInputValue(v *string) InputValue {
-	return InputReference[string]{v}
+	return InputReference[string]{v, nil}
 }
 func IntInputValue(v *int) InputValue {
-	return InputReference[int]{v}
+	return InputReference[int]{v, nil}
 }
 func BoolInputValue(v *bool) InputValue {
-	return InputReference[bool]{v}
+	return InputReference[bool]{v, nil}
 }

@@ -24,8 +24,8 @@ func (stringInput) CanHandle(i sebastion.Input) bool {
 func (stringInput) Set(i sebastion.Input, f string) error {
 	return i.Value.Set(f)
 }
-func (stringInput) Template(i sebastion.Input) templ.Component {
-	return templates.StringInput(i)
+func (stringInput) Template(i sebastion.Input, err string) templ.Component {
+	return templates.StringInput(i, err)
 }
 
 type intInput struct{}
@@ -41,8 +41,8 @@ func (intInput) Set(i sebastion.Input, f string) error {
 	}
 	return i.Value.Set(n)
 }
-func (intInput) Template(i sebastion.Input) templ.Component {
-	return templates.IntInput(i)
+func (intInput) Template(i sebastion.Input, err string) templ.Component {
+	return templates.IntInput(i, err)
 }
 
 type boolInput struct{}
@@ -54,8 +54,8 @@ func (boolInput) CanHandle(i sebastion.Input) bool {
 func (boolInput) Set(i sebastion.Input, f string) error {
 	return i.Value.Set(f == "true")
 }
-func (boolInput) Template(i sebastion.Input) templ.Component {
-	return templates.BoolInput(i)
+func (boolInput) Template(i sebastion.Input, err string) templ.Component {
+	return templates.BoolInput(i, err)
 }
 
 type multiStringInput struct{}
@@ -67,6 +67,6 @@ func (multiStringInput) CanHandle(i sebastion.Input) bool {
 func (multiStringInput) Set(i sebastion.Input, f string) error {
 	return i.Value.Set(f)
 }
-func (multiStringInput) Template(i sebastion.Input) templ.Component {
-	return templates.MultiStringInput(i)
+func (multiStringInput) Template(i sebastion.Input, err string) templ.Component {
+	return templates.MultiStringInput(i, err)
 }

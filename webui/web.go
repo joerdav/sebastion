@@ -1,11 +1,11 @@
 package webui
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/google/uuid"
@@ -33,8 +33,8 @@ type WebRunner struct {
 	Actions      []sebastion.Action
 	Router       http.Handler
 	customInputs []WebInputHandler
-	jobs         chan startAction
-	outputs      map[string]*bytes.Buffer
+	jobs         chan<- startAction
+	outputs      outputs
 }
 
 // AppendHandlers allows you to add custom code to retrieve inputs for an action.
@@ -45,8 +45,7 @@ func (t *WebRunner) AppendHandlers(h ...WebInputHandler) {
 func Web(cfg WebConfig, actions ...sebastion.Action) (http.Handler, error) {
 	wr := WebRunner{
 		Actions: actions,
-		jobs:    make(chan startAction),
-		outputs: make(map[string]*bytes.Buffer),
+		outputs: newOutputs(),
 	}
 	wr.routes()
 	err := validateActions(wr.Actions)
@@ -56,7 +55,7 @@ func Web(cfg WebConfig, actions ...sebastion.Action) (http.Handler, error) {
 	if cfg.Workers < 1 {
 		cfg.Workers = 1
 	}
-	wr.workers(cfg.Workers, wr.jobs)
+	wr.jobs = newWorkerPool(cfg.Workers, wr.outputs)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.Method, r.URL)
 		wr.Router.ServeHTTP(w, r)
@@ -68,7 +67,6 @@ func (wr *WebRunner) routes() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", wr.index)
 	r.HandleFunc("/output/{id}/ws", wr.streamOutput)
-	r.HandleFunc("/output/{id}", wr.getOutputView).Methods(http.MethodGet)
 	r.HandleFunc("/action/{name}", wr.actionForm).Methods(http.MethodGet)
 	r.HandleFunc("/action/{name}", wr.runAction).Methods(http.MethodPost)
 	wr.Router = r
@@ -88,7 +86,7 @@ func (wr *WebRunner) streamOutput(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
 		return
 	}
-	_, ok := wr.outputs[outputId]
+	o, ok := wr.outputs.readerMap[outputId]
 	if !ok {
 		w.WriteHeader(404)
 		return
@@ -99,15 +97,12 @@ func (wr *WebRunner) streamOutput(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer ws.Close()
-	ticker := time.NewTicker(10 * time.Millisecond)
-	for range ticker.C {
-		o, ok := wr.outputs[outputId]
-		if !ok {
-			ws.Close()
-			return
-		}
+	lb := new(bytes.Buffer)
+	sn := bufio.NewScanner(o)
+	for sn.Scan() {
+		fmt.Fprintln(lb, sn.Text())
 		html := new(bytes.Buffer)
-		err := templates.LogStream(o.String()).
+		err := templates.LogStream(lb.String()).
 			Render(r.Context(), html)
 		if err != nil {
 			ws.Close()
@@ -115,24 +110,9 @@ func (wr *WebRunner) streamOutput(w http.ResponseWriter, r *http.Request) {
 		}
 		err = ws.WriteMessage(websocket.TextMessage, html.Bytes())
 		if err != nil {
-			ws.Close()
+			log.Println("Error: ", err)
 			return
 		}
-	}
-}
-
-func (wr *WebRunner) getOutputView(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	outputId := vars["id"]
-	if outputId == "" {
-		w.WriteHeader(404)
-		return
-	}
-	o := wr.outputs[outputId]
-	component := templates.Log(outputId, o.String())
-	err := component.Render(r.Context(), w)
-	if err != nil {
-		w.WriteHeader(500)
 	}
 }
 
@@ -173,23 +153,39 @@ func (wr *WebRunner) runAction(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 		return
 	}
+	validations := []templ.Component{}
 	for _, i := range a.Inputs() {
 		h := wr.getInputHandler(i)
 		v := r.FormValue(i.Name)
 		err := h.Set(i, v)
 		if err != nil {
 			log.Println(err)
-			w.WriteHeader(500)
-			return
+			validations = append(validations, templates.ReplaceInput(i.Name, h.Template(i, err.Error())))
 		}
+	}
+	if len(validations) != 0 {
+		w.Header().Set("Content-Type", turboType)
+		for _, v := range validations {
+			err = v.Render(r.Context(), w)
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(500)
+				return
+			}
+		}
+		return
 	}
 	outputId := uuid.NewString()
 	wr.jobs <- startAction{
 		action: a,
 		out:    outputId,
 	}
-	log.Println("Redirecting")
-	http.Redirect(w, r, "/output/"+outputId, 303)
+	component := templates.Log(outputId, "")
+	err = component.Render(r.Context(), w)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(500)
+	}
 }
 
 func getHandler(hs []WebInputHandler, i sebastion.Input) (WebInputHandler, bool) {
@@ -214,14 +210,14 @@ func (wr *WebRunner) getInputComponents(a sebastion.Action) []templ.Component {
 	var components []templ.Component
 	for _, i := range a.Inputs() {
 		if h, ok := getHandler(wr.customInputs, i); ok {
-			components = append(components, h.Template(i))
+			components = append(components, templates.InputWrapper(i.Name, h.Template(i, "")))
 			continue
 		}
 		if h, ok := getHandler(defaultHandlers, i); ok {
-			components = append(components, h.Template(i))
+			components = append(components, templates.InputWrapper(i.Name, h.Template(i, "")))
 			continue
 		}
-		components = append(components, templates.StringInput(i))
+		components = append(components, templates.InputWrapper(i.Name, templates.StringInput(i, "")))
 	}
 	return components
 }

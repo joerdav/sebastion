@@ -9,6 +9,12 @@ import (
 	"github.com/joerdav/sebastion"
 )
 
+func isAssignable(i sebastion.Input) survey.Validator {
+	return func(ans interface{}) error {
+		return i.Value.Set(ans)
+	}
+}
+
 // stringHandler is a TUIInputHandler that can handle string inputs.
 type stringHandler struct{}
 
@@ -22,7 +28,7 @@ func (stringHandler) Get(i sebastion.Input) error {
 	prompt := &survey.Input{
 		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
 	}
-	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required), survey.WithValidator(isAssignable(i)))
 	if err != nil {
 		return err
 	}
@@ -42,7 +48,7 @@ func (boolHandler) Get(i sebastion.Input) error {
 	prompt := &survey.Confirm{
 		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
 	}
-	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required), survey.WithValidator(isAssignable(i)))
 	if err != nil {
 		return err
 	}
@@ -72,7 +78,7 @@ func (intHandler) Get(i sebastion.Input) error {
 			return errors.New("This response must be a number.")
 		}
 		return nil
-	}))
+	}), survey.WithValidator(isAssignable(i)))
 	if err != nil {
 		return err
 	}
@@ -101,7 +107,7 @@ func (multiStringHandler) Get(i sebastion.Input) error {
 		Message: fmt.Sprintf("%s - %s\n", i.Name, i.Description),
 		Options: s.Options,
 	}
-	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required))
+	err := survey.AskOne(prompt, &inp, survey.WithValidator(survey.Required), survey.WithValidator(isAssignable(i)))
 	if err != nil {
 		return err
 	}
@@ -131,7 +137,7 @@ func (float32Handler) Get(i sebastion.Input) error {
 			return errors.New("This response must be a number.")
 		}
 		return nil
-	}))
+	}), survey.WithValidator(isAssignable(i)))
 	if err != nil {
 		return err
 	}
@@ -165,7 +171,7 @@ func (float64Handler) Get(i sebastion.Input) error {
 			return errors.New("This response must be a number.")
 		}
 		return nil
-	}))
+	}), survey.WithValidator(isAssignable(i)))
 	if err != nil {
 		return err
 	}
