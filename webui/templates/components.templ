@@ -1,8 +1,29 @@
 package templates
 
 templ title(t string) {
-	<h1 class={templ.Classes(templ.Class("title"))}>
-		{t}
-	</h1>
+	<h1 class={ templ.Classes(templ.Class("title")) }>{ t }</h1>
+}
+
+css growin() {
+	animation: growIn ease .5s;
+}
+
+templ card() {
+	<style>
+		@keyframes growIn {
+		   0% {
+			   transform: translateY(-10%);
+			   opacity: 0;
+		   }
+		   100% {}
+		} 
+	</style>
+	<div class={ templ.Classes(templ.Class("card"), templ.Class("mt-5"), growin()) }>
+		<div class="card-content">
+			<div class="content">
+				{ children... }
+			</div>
+		</div>
+	</div>
 }
 

@@ -13,7 +13,19 @@ import "strings"
 func logFont() templ.CSSClass {
 	var templCSSBuilder strings.Builder
 	templCSSBuilder.WriteString(`font-family:ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;`)
+	templCSSBuilder.WriteString(`color:white;`)
+	templCSSBuilder.WriteString(`background-color:black;`)
 	templCSSID := templ.CSSID(`logFont`, templCSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID: templCSSID,
+		Class: templ.SafeCSS(`.` + templCSSID + `{` + templCSSBuilder.String() + `}`),
+	}
+}
+
+func thirtyPercentHeight() templ.CSSClass {
+	var templCSSBuilder strings.Builder
+	templCSSBuilder.WriteString(`height:30%;`)
+	templCSSID := templ.CSSID(`thirtyPercentHeight`, templCSSBuilder.String())
 	return templ.ComponentCSSClass{
 		ID: templCSSID,
 		Class: templ.SafeCSS(`.` + templCSSID + `{` + templCSSBuilder.String() + `}`),
@@ -25,6 +37,7 @@ var logStyle = templ.Classes(
 	templ.Class("textarea"),
 	templ.Class("is-black"),
 	logFont(),
+	thirtyPercentHeight(),
 )
 
 func LogComponent(text string) templ.Component {
@@ -154,59 +167,77 @@ func LogInit(outputId string, text string) templ.Component {
 			return err
 		}
 		// TemplElement
-		err = LogComponent(text).Render(ctx, templBuffer)
-		if err != nil {
-			return err
-		}
-		// Element (void)
-		_, err = templBuffer.WriteString("<input")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" type=\"hidden\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" id=\"outputid\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(" value=")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(templ.EscapeString(outputId))
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
+		var_6 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+			// TemplElement
+			err = LogComponent(text).Render(ctx, templBuffer)
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
+			// Element (void)
+			_, err = templBuffer.WriteString("<input")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" type=\"hidden\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" id=\"outputid\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" value=")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(templ.EscapeString(outputId))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
 // RawElement
-		_, err = templBuffer.WriteString("<script>")
-		if err != nil {
-			return err
-		}
+			_, err = templBuffer.WriteString("<script>")
+			if err != nil {
+				return err
+			}
 // Text
-var_6 := `
-			var id = document.querySelector('#outputid').value
-			Turbo.connectStreamSource(new WebSocket(` + "`" + `ws://${window.location.host}/output/${id}/ws` + "`" + `));
-		`
-_, err = templBuffer.WriteString(var_6)
+var_7 := `
+				var id = document.querySelector('#outputid').value
+				Turbo.connectStreamSource(new WebSocket(` + "`" + `ws://${window.location.host}/output/${id}/ws` + "`" + `));
+			`
+_, err = templBuffer.WriteString(var_7)
 if err != nil {
 	return err
 }
-		_, err = templBuffer.WriteString("</script>")
+			_, err = templBuffer.WriteString("</script>")
+			if err != nil {
+				return err
+			}
+			return err
+		})
+		err = card().Render(templ.WithChildren(ctx, var_6), templBuffer)
 		if err != nil {
 			return err
 		}
@@ -228,9 +259,9 @@ func LogStream(text string) templ.Component {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_7 := templ.GetChildren(ctx)
-		if var_7 == nil {
-			var_7 = templ.NopComponent
+		var_8 := templ.GetChildren(ctx)
+		if var_8 == nil {
+			var_8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)

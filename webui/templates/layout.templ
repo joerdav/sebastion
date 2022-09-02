@@ -8,9 +8,11 @@ templ Layout() {
 		</head>
 		<body>
 			@Nav()
-			<div class={ templ.Classes(templ.Class("container"), templ.Class("p-5")) }>
-				{ children... }
-			</div>
+			<turbo-frame id="content" data-turbo-action="advance">
+				<div class={ templ.Classes(templ.Class("container"), templ.Class("p-5")) }>
+					{ children... }
+				</div>
+			</turbo-frame>
 		</body>
 	</html>
 }

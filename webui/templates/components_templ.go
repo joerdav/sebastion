@@ -8,6 +8,7 @@ import "github.com/a-h/templ"
 import "context"
 import "io"
 import "bytes"
+import "strings"
 
 func title(t string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
@@ -59,6 +60,135 @@ func title(t string) templ.Component {
 			return err
 		}
 		_, err = templBuffer.WriteString("</h1>")
+		if err != nil {
+			return err
+		}
+		if !templIsBuffer {
+			_, err = io.Copy(w, templBuffer)
+		}
+		return err
+	})
+}
+
+func growin() templ.CSSClass {
+	var templCSSBuilder strings.Builder
+	templCSSBuilder.WriteString(`animation:growIn ease .5s;`)
+	templCSSID := templ.CSSID(`growin`, templCSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID: templCSSID,
+		Class: templ.SafeCSS(`.` + templCSSID + `{` + templCSSBuilder.String() + `}`),
+	}
+}
+
+func card() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+		templBuffer, templIsBuffer := w.(*bytes.Buffer)
+		if !templIsBuffer {
+			templBuffer = new(bytes.Buffer)
+		}
+		ctx = templ.InitializeContext(ctx)
+		var_3 := templ.GetChildren(ctx)
+		if var_3 == nil {
+			var_3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+// RawElement
+		_, err = templBuffer.WriteString("<style>")
+		if err != nil {
+			return err
+		}
+// Text
+var_4 := `
+		@keyframes growIn {
+		   0% {
+			   transform: translateY(-10%);
+			   opacity: 0;
+		   }
+		   100% {}
+		} 
+	`
+_, err = templBuffer.WriteString(var_4)
+if err != nil {
+	return err
+}
+		_, err = templBuffer.WriteString("</style>")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		// Element CSS
+		var var_5 templ.CSSClasses = templ.Classes(templ.Class("card"), templ.Class("mt-5"), growin())
+		err = templ.RenderCSSItems(ctx, templBuffer, var_5...)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("<div")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(templ.EscapeString(var_5.String()))
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<div")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"card-content\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
+		_, err = templBuffer.WriteString("<div")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" class=\"content\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Children
+		err = var_3.Render(ctx, templBuffer)
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</div>")
 		if err != nil {
 			return err
 		}

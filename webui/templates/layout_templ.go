@@ -96,6 +96,24 @@ if err != nil {
 			return err
 		}
 		// Element (standard)
+		_, err = templBuffer.WriteString("<turbo-frame")
+		if err != nil {
+			return err
+		}
+		// Element Attributes
+		_, err = templBuffer.WriteString(" id=\"content\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(" data-turbo-action=\"advance\"")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString(">")
+		if err != nil {
+			return err
+		}
+		// Element (standard)
 		// Element CSS
 		var var_3 templ.CSSClasses = templ.Classes(templ.Class("container"), templ.Class("p-5"))
 		err = templ.RenderCSSItems(ctx, templBuffer, var_3...)
@@ -133,6 +151,10 @@ if err != nil {
 			return err
 		}
 		_, err = templBuffer.WriteString("</div>")
+		if err != nil {
+			return err
+		}
+		_, err = templBuffer.WriteString("</turbo-frame>")
 		if err != nil {
 			return err
 		}

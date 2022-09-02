@@ -39,7 +39,7 @@ func Index(actions []sebastion.Action) templ.Component {
 				return err
 			}
 			// TemplElement
-			err = dropdown(actions).Render(ctx, templBuffer)
+			err = table(actions).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -56,7 +56,7 @@ func Index(actions []sebastion.Action) templ.Component {
 	})
 }
 
-func dropdown(actions []sebastion.Action) templ.Component {
+func table(actions []sebastion.Action) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
@@ -68,188 +68,15 @@ func dropdown(actions []sebastion.Action) templ.Component {
 			var_3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		// Element (standard)
-		_, err = templBuffer.WriteString("<div")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"card\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<div")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"card-content\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<div")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"content\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<table")
-		if err != nil {
-			return err
-		}
-		// Element Attributes
-		_, err = templBuffer.WriteString(" class=\"table\"")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString(">")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<thead>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<tr>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<th>")
-		if err != nil {
-			return err
-		}
-		// Text
-		var_4 := `Title`
-		_, err = templBuffer.WriteString(var_4)
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</th>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<th>")
-		if err != nil {
-			return err
-		}
-		// Text
-		var_5 := `Description`
-		_, err = templBuffer.WriteString(var_5)
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</th>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<th>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</th>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</tr>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</thead>")
-		if err != nil {
-			return err
-		}
-		// Element (standard)
-		_, err = templBuffer.WriteString("<tbody>")
-		if err != nil {
-			return err
-		}
-		// For
-		for _, a := range actions {
+		// TemplElement
+		var_4 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 			// Element (standard)
-			_, err = templBuffer.WriteString("<tr>")
-			if err != nil {
-				return err
-			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<td>")
-			if err != nil {
-				return err
-			}
-			// StringExpression
-			_, err = templBuffer.WriteString(templ.EscapeString(a.Details().Name))
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString("</td>")
-			if err != nil {
-				return err
-			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<td>")
-			if err != nil {
-				return err
-			}
-			// StringExpression
-			_, err = templBuffer.WriteString(templ.EscapeString(a.Details().Description))
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString("</td>")
-			if err != nil {
-				return err
-			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<td>")
-			if err != nil {
-				return err
-			}
-			// Element (standard)
-			_, err = templBuffer.WriteString("<a")
+			_, err = templBuffer.WriteString("<table")
 			if err != nil {
 				return err
 			}
 			// Element Attributes
-			_, err = templBuffer.WriteString(" class=\"button is-black is-radiusless\"")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString(" href=")
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString("\"")
-			if err != nil {
-				return err
-			}
-			var var_6 templ.SafeURL = templ.SafeURL(actionUrl(a))
-			_, err = templBuffer.WriteString(templ.EscapeString(string(var_6)))
-			if err != nil {
-				return err
-			}
-			_, err = templBuffer.WriteString("\"")
+			_, err = templBuffer.WriteString(" class=\"table\"")
 			if err != nil {
 				return err
 			}
@@ -257,17 +84,52 @@ func dropdown(actions []sebastion.Action) templ.Component {
 			if err != nil {
 				return err
 			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<thead>")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<tr>")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<th>")
+			if err != nil {
+				return err
+			}
 			// Text
-			var_7 := `Run`
-			_, err = templBuffer.WriteString(var_7)
+			var_5 := `Title`
+			_, err = templBuffer.WriteString(var_5)
 			if err != nil {
 				return err
 			}
-			_, err = templBuffer.WriteString("</a>")
+			_, err = templBuffer.WriteString("</th>")
 			if err != nil {
 				return err
 			}
-			_, err = templBuffer.WriteString("</td>")
+			// Element (standard)
+			_, err = templBuffer.WriteString("<th>")
+			if err != nil {
+				return err
+			}
+			// Text
+			var_6 := `Description`
+			_, err = templBuffer.WriteString(var_6)
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</th>")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<th>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</th>")
 			if err != nil {
 				return err
 			}
@@ -275,24 +137,116 @@ func dropdown(actions []sebastion.Action) templ.Component {
 			if err != nil {
 				return err
 			}
-		}
-		_, err = templBuffer.WriteString("</tbody>")
-		if err != nil {
+			_, err = templBuffer.WriteString("</thead>")
+			if err != nil {
+				return err
+			}
+			// Element (standard)
+			_, err = templBuffer.WriteString("<tbody>")
+			if err != nil {
+				return err
+			}
+			// For
+			for _, a := range actions {
+				// Element (standard)
+				_, err = templBuffer.WriteString("<tr>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<td>")
+				if err != nil {
+					return err
+				}
+				// StringExpression
+				_, err = templBuffer.WriteString(templ.EscapeString(a.Details().Name))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</td>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<td>")
+				if err != nil {
+					return err
+				}
+				// StringExpression
+				_, err = templBuffer.WriteString(templ.EscapeString(a.Details().Description))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</td>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<td>")
+				if err != nil {
+					return err
+				}
+				// Element (standard)
+				_, err = templBuffer.WriteString("<a")
+				if err != nil {
+					return err
+				}
+				// Element Attributes
+				_, err = templBuffer.WriteString(" class=\"button is-black is-radiusless\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(" href=")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				var var_7 templ.SafeURL = templ.SafeURL(actionUrl(a))
+				_, err = templBuffer.WriteString(templ.EscapeString(string(var_7)))
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("\"")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString(">")
+				if err != nil {
+					return err
+				}
+				// Text
+				var_8 := `Run`
+				_, err = templBuffer.WriteString(var_8)
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</a>")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</td>")
+				if err != nil {
+					return err
+				}
+				_, err = templBuffer.WriteString("</tr>")
+				if err != nil {
+					return err
+				}
+			}
+			_, err = templBuffer.WriteString("</tbody>")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("</table>")
+			if err != nil {
+				return err
+			}
 			return err
-		}
-		_, err = templBuffer.WriteString("</table>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</div>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</div>")
-		if err != nil {
-			return err
-		}
-		_, err = templBuffer.WriteString("</div>")
+		})
+		err = card().Render(templ.WithChildren(ctx, var_4), templBuffer)
 		if err != nil {
 			return err
 		}

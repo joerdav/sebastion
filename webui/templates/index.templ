@@ -7,15 +7,13 @@ import (
 templ Index(actions []sebastion.Action) {
 	@Layout() {
 		@title("Actions")
-		@dropdown(actions)
+		@table(actions)
 	}
 }
 
-templ dropdown(actions []sebastion.Action) {
-	<div class="card">
-		<div class="card-content">
-			<div class="content">
-				<table class="table"><thead>
+templ table(actions []sebastion.Action) {
+	@card() {
+		<table class="table"><thead>
 	<tr>
 		<th>Title</th>
 		<th>Description</th>
@@ -30,8 +28,6 @@ templ dropdown(actions []sebastion.Action) {
 		</tr>
 	}
 </tbody></table>
-			</div>
-		</div>
-	</div>
+	}
 }
 
