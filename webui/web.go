@@ -160,7 +160,7 @@ func (wr *WebRunner) runAction(w http.ResponseWriter, r *http.Request) {
 		err := h.Set(i, v)
 		if err != nil {
 			log.Println(err)
-			validations = append(validations, templates.ReplaceInput(i.Name, h.Template(i, err.Error())))
+			validations = append(validations, templates.UpdateValidation(i.Name, err.Error()))
 		}
 	}
 	if len(validations) != 0 {
@@ -209,15 +209,16 @@ func (wr *WebRunner) getInputHandler(i sebastion.Input) WebInputHandler {
 func (wr *WebRunner) getInputComponents(a sebastion.Action) []templ.Component {
 	var components []templ.Component
 	for _, i := range a.Inputs() {
+		def := i.Value.DefaultString()
 		if h, ok := getHandler(wr.customInputs, i); ok {
-			components = append(components, templates.InputWrapper(i.Name, h.Template(i, "")))
+			components = append(components, templates.InputWrapper(i.Name, h.Template(i, def, "")))
 			continue
 		}
 		if h, ok := getHandler(defaultHandlers, i); ok {
-			components = append(components, templates.InputWrapper(i.Name, h.Template(i, "")))
+			components = append(components, templates.InputWrapper(i.Name, h.Template(i, def, "")))
 			continue
 		}
-		components = append(components, templates.InputWrapper(i.Name, templates.StringInput(i, "")))
+		components = append(components, templates.InputWrapper(i.Name, templates.StringInput(i, def, "")))
 	}
 	return components
 }

@@ -17,46 +17,35 @@ templ InputWrapper(name string, c templ.Component) {
 	</div>
 }
 
-templ ReplaceInput(name string, c templ.Component) {
-	<turbo-stream action="update" targets={ fmt.Sprintf("#%s", inputId(name)) }>
+templ UpdateValidation(name, message string) {
+	<turbo-stream action="update" targets={ fmt.Sprintf("#%s>#validation", inputId(name)) }>
 		<template>
-			@c
+			<p class="help is-danger">{ message }</p>
 		</template>
 	</turbo-stream>
 }
 
-templ StringInput(s sebastion.Input, e string) {
+templ StringInput(s sebastion.Input, def, e string) {
 	<label class="label">{ s.Name }</label>
-	if e != "" {
-		<p class="help is-danger">{ e }</p>
-	}
-	<div class="control"><input name={ s.Name } class="input" value={ s.Value.String() } type="text" placeholder={ s.Name }/></div>
+	<div class="control"><input name={ s.Name } class="input" value={ def } type="text" placeholder={ s.Name }/></div>
 	<p class="help">{ s.Description }</p>
 }
 
-templ IntInput(s sebastion.Input, e string) {
+templ IntInput(s sebastion.Input, def, e string) {
 	<label class="label">{ s.Name }</label>
-	if e != "" {
-		<p class="help is-danger">{ e }</p>
-	}
-	<div class="control"><input name={ s.Name } class="input" value={ s.Value.String() } type="number" placeholder={ s.Name }/></div>
+	<div id="validation"></div>
+	<div class="control"><input name={ s.Name } class="input" value={ def } type="number" placeholder={ s.Name }/></div>
 	<p class="help">{ s.Description }</p>
 }
 
-templ BoolInput(s sebastion.Input, e string) {
-	<div class="control"><label class="label">{ s.Name }</label><input name={ s.Name } value={ s.Value.String() } type="checkbox"/></div>
-	if e != "" {
-		<p class="help is-danger">{ e }</p>
-	}
+templ BoolInput(s sebastion.Input,def, e string) {
+	<div class="control"><label class="label">{ s.Name }</label><input name={ s.Name } value={ def } type="checkbox"/></div>
 	<p class="help">{ s.Description }</p>
 }
 
-templ MultiStringInput(s sebastion.Input, e string) {
+templ MultiStringInput(s sebastion.Input,def, e string) {
 	<label class="label">{ s.Name }</label>
-	if e != "" {
-		<p class="help is-danger">{ e }</p>
-	}
-	<div class="select"><select name={ s.Name } value={ s.Value.String() }>
+	<div class="select"><select name={ s.Name } value={ def }>
 	for _, o := range s.Value.(sebastion.MultiStringSelect).Options {
 		<option>{ o }</option>
 	}

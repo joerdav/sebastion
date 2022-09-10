@@ -37,7 +37,9 @@ func (cp *Spam) Inputs() []sebastion.Input {
 			"Hello, world!",
 			"Goodbye, world!",
 			"Hello, Sebastion!"),
-		sebastion.NewInput("Repetitions", "How many times to repeat", &cp.repeat, positive),
+		sebastion.NewInput("Repetitions", "How many times to repeat", &cp.repeat,
+			sebastion.WithValidaton(positive),
+			sebastion.WithDefault(1)),
 	}
 }
 func (cp *Spam) Run(ctx sebastion.Context) error {
@@ -57,7 +59,8 @@ func (cp *EchoSomething) Details() sebastion.ActionDetails {
 }
 func (c *EchoSomething) Inputs() []sebastion.Input {
 	return []sebastion.Input{
-		sebastion.NewInput("Text", "Some text to be echo-ed.", &c.text, noEmails),
+		sebastion.NewInput("Text", "Some text to be echo-ed.", &c.text,
+			sebastion.WithValidaton(noEmails, sebastion.Required[string])),
 	}
 }
 func (c *EchoSomething) Run(ctx sebastion.Context) error {
