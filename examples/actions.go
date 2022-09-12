@@ -34,14 +34,20 @@ func (cp *Spam) Details() sebastion.ActionDetails {
 func (cp *Spam) Inputs() []sebastion.Input {
 	return []sebastion.Input{
 		sebastion.NewMultiStringInput("Message", "The message to print", &cp.message,
-			"Hello, world!",
-			"Goodbye, world!",
-			"Hello, Sebastion!"),
+			[]string{
+				"Hello, World!",
+				"Hello, Sebastion!",
+				"Third Option",
+			}, nil),
 		sebastion.NewInput("Repetitions", "How many times to repeat", &cp.repeat,
-			sebastion.WithValidaton(positive),
-			sebastion.WithDefault(1)),
+			&sebastion.InputProps[int]{
+				Default:   1,
+				Validator: positive,
+			},
+		),
 	}
 }
+
 func (cp *Spam) Run(ctx sebastion.Context) error {
 	for i := 0; i < cp.repeat; i++ {
 		ctx.Logger.Println(cp.message)
@@ -60,7 +66,9 @@ func (cp *EchoSomething) Details() sebastion.ActionDetails {
 func (c *EchoSomething) Inputs() []sebastion.Input {
 	return []sebastion.Input{
 		sebastion.NewInput("Text", "Some text to be echo-ed.", &c.text,
-			sebastion.WithValidaton(noEmails, sebastion.Required[string])),
+			&sebastion.InputProps[string]{
+				Validator: sebastion.Validators(noEmails, sebastion.Required[string]),
+			}),
 	}
 }
 func (c *EchoSomething) Run(ctx sebastion.Context) error {
@@ -77,7 +85,7 @@ func (Panic) Details() sebastion.ActionDetails {
 }
 func (p *Panic) Inputs() []sebastion.Input {
 	return []sebastion.Input{
-		sebastion.NewBoolInput("Panic?", "", &p.shouldPanic),
+		sebastion.NewInput("Panic?", "", &p.shouldPanic, nil),
 	}
 }
 func (p Panic) Run(sebastion.Context) error {

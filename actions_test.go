@@ -37,7 +37,7 @@ func TestInputReference(t *testing.T) {
 func TestStringInput(t *testing.T) {
 	t.Run("given a wrong type, return an error", func(t *testing.T) {
 		s := "somestring"
-		ir := StringInputValue(&s)
+		ir := InputReference[string]{Ptr: &s}
 		err := ir.Set(1)
 		if err != ErrTypeMismatch {
 			t.Errorf("expected error. want=%v got=%v", ErrTypeMismatch, err)
@@ -47,7 +47,7 @@ func TestStringInput(t *testing.T) {
 		}
 	})
 	t.Run("given a nil input, return an error", func(t *testing.T) {
-		ir := StringInputValue(nil)
+		ir := InputReference[string]{}
 		err := ir.Set("mystring")
 		if err != ErrNilInputReference {
 			t.Errorf("expected error. want=%v got=%v", ErrNilInputReference, err)
@@ -55,7 +55,7 @@ func TestStringInput(t *testing.T) {
 	})
 	t.Run("given a correct type, set the pointer", func(t *testing.T) {
 		s := "somestring"
-		ir := StringInputValue(&s)
+		ir := InputReference[string]{Ptr: &s}
 		err := ir.Set("newstring")
 		if err != nil {
 			t.Errorf("expected no error but got: %v", err)
@@ -69,7 +69,7 @@ func TestStringInput(t *testing.T) {
 func TestBoolInput(t *testing.T) {
 	t.Run("given a wrong type, return an error", func(t *testing.T) {
 		s := false
-		ir := BoolInputValue(&s)
+		ir := InputReference[bool]{Ptr: &s}
 		err := ir.Set(1)
 		if err != ErrTypeMismatch {
 			t.Errorf("expected error. want=%v got=%v", ErrTypeMismatch, err)
@@ -79,7 +79,7 @@ func TestBoolInput(t *testing.T) {
 		}
 	})
 	t.Run("given a nil input, return an error", func(t *testing.T) {
-		ir := BoolInputValue(nil)
+		ir := InputReference[bool]{Ptr: nil}
 		err := ir.Set("mystring")
 		if err != ErrNilInputReference {
 			t.Errorf("expected error. want=%v got=%v", ErrNilInputReference, err)
@@ -87,7 +87,7 @@ func TestBoolInput(t *testing.T) {
 	})
 	t.Run("given a correct type, set the pointer", func(t *testing.T) {
 		s := false
-		ir := BoolInputValue(&s)
+		ir := InputReference[bool]{Ptr: &s}
 		err := ir.Set(true)
 		if err != nil {
 			t.Errorf("expected no error but got: %v", err)

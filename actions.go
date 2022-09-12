@@ -41,15 +41,15 @@ type Input struct {
 
 type MultiStringSelect struct {
 	Ptr     *string
-	Default string
 	Options []string
+	Props   InputProps[string]
 }
 
 func (si MultiStringSelect) String() string {
 	return fmt.Sprint(*si.Ptr)
 }
 func (si MultiStringSelect) DefaultString() string {
-	return si.Default
+	return si.Props.Default
 }
 func (si MultiStringSelect) Set(v any) error {
 	if si.Ptr == nil {
@@ -73,21 +73,24 @@ func (si MultiStringSelect) Set(v any) error {
 }
 
 type InputReference[T any] struct {
-	Ptr        *T
-	Default    T
-	validators []func(T) error
+	Ptr   *T
+	Props InputProps[T]
 }
 
-type InputOption[T any] func(*InputReference[T])
-
-func WithValidaton[T any](vs ...func(T) error) InputOption[T] {
-	return func(ir *InputReference[T]) {
-		ir.validators = append(ir.validators, vs...)
-	}
+type InputProps[T any] struct {
+	Default   T
+	Validator func(T) error
 }
-func WithDefault[T any](d T) InputOption[T] {
-	return func(ir *InputReference[T]) {
-		ir.Default = d
+
+func Validators[T any](vs ...func(T) error) func(T) error {
+	return func(t T) error {
+		for _, v := range vs {
+			err := v(t)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	}
 }
 
@@ -108,59 +111,44 @@ func (si InputReference[T]) Set(v any) error {
 	if !ok {
 		return ErrTypeMismatch
 	}
-	for _, v := range si.validators {
-		err := v(s)
-		if err != nil {
-			return err
-		}
+	if si.Props.Validator == nil {
+		*si.Ptr = s
+		return nil
+	}
+	err := si.Props.Validator(s)
+	if err != nil {
+		return err
 	}
 	*si.Ptr = s
 	return nil
 }
 func (si InputReference[T]) DefaultString() string {
-	return fmt.Sprint(si.Default)
+	return fmt.Sprint(si.Props.Default)
 }
 func (si InputReference[T]) String() string {
 	return fmt.Sprint(*si.Ptr)
 }
-func NewStringInput(name, description string, value *string) Input {
-	return Input{Name: name, Description: description, Value: StringInputValue(value)}
+
+func emptyValidator[T any](T) error {
+	return nil
 }
-func NewIntInput(name, description string, value *int) Input {
-	return Input{Name: name, Description: description, Value: IntInputValue(value)}
-}
-func NewBoolInput(name, description string, value *bool) Input {
-	return Input{Name: name, Description: description, Value: BoolInputValue(value)}
-}
-func NewInput[T any](name, description string, value *T, opts ...InputOption[T]) Input {
+func NewInput[T any](name, description string, value *T, props *InputProps[T]) Input {
 	ir := InputReference[T]{Ptr: value}
-	for _, o := range opts {
-		o(&ir)
+	if props != nil {
+		ir.Props = *props
+	}
+	if ir.Props.Validator == nil {
+		ir.Props.Validator = emptyValidator[T]
 	}
 	return Input{Name: name, Description: description, Value: ir}
 }
-func NewMultiStringInput(name, description string, value *string, options ...string) Input {
-	return Input{name, description, MultiStringSelect{Ptr: value, Options: options}}
-}
-
-func StringInputValue(v *string, opts ...InputOption[string]) InputValue {
-	ir := InputReference[string]{Ptr: v}
-	for _, o := range opts {
-		o(&ir)
+func NewMultiStringInput(name, description string, value *string, options []string, props *InputProps[string]) Input {
+	ir := MultiStringSelect{Ptr: value, Options: options}
+	if props != nil {
+		ir.Props = *props
 	}
-	return ir
-}
-func IntInputValue(v *int, opts ...InputOption[int]) InputValue {
-	ir := InputReference[int]{Ptr: v}
-	for _, o := range opts {
-		o(&ir)
+	if ir.Props.Validator == nil {
+		ir.Props.Validator = func(s string) error { return nil }
 	}
-	return ir
-}
-func BoolInputValue(v *bool, opts ...InputOption[bool]) InputValue {
-	ir := InputReference[bool]{Ptr: v}
-	for _, o := range opts {
-		o(&ir)
-	}
-	return ir
+	return Input{name, description, ir}
 }
