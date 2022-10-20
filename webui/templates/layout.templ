@@ -1,10 +1,24 @@
 package templates
 
+import "os"
+
 templ Layout() {
 	<html>
 		<head>
 			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"/>
 			<script type="text/javascript" crossorigin="anonymous" src="https://unpkg.com/@hotwired/turbo@7.1.0/dist/turbo.es2017-umd.js"></script>
+		if os.Getenv("DEBUG") == "true" {
+			<style>
+				@keyframes debug {
+					from {outline: 3px solid #FF0000FF;}
+					to {outline: 3px solid #FF000000;}
+				}
+				* {
+					animation-name: debug;
+					animation-duration: 1s;
+				}
+			</style>
+		}
 		</head>
 		<body>
 			@Nav()

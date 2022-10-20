@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 
 	"github.com/a-h/templ"
+	"github.com/a-h/templ/turbo"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -67,6 +69,7 @@ func (wr *WebRunner) routes() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", wr.index)
 	r.HandleFunc("/output/{id}/ws", wr.streamOutput)
+	r.HandleFunc("/output/{id}", wr.getOutput)
 	r.HandleFunc("/action/{name}", wr.actionForm).Methods(http.MethodGet)
 	r.HandleFunc("/action/{name}", wr.runAction).Methods(http.MethodPost)
 	wr.Router = r
@@ -76,6 +79,30 @@ func (wr *WebRunner) index(w http.ResponseWriter, r *http.Request) {
 	err := templates.Index(wr.Actions).Render(r.Context(), w)
 	if err != nil {
 		w.WriteHeader(500)
+	}
+}
+func (wr *WebRunner) getOutput(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	outputId := vars["id"]
+	if outputId == "" {
+		w.WriteHeader(404)
+		return
+	}
+	o, ok := wr.outputs.readerMap[outputId]
+	if !ok {
+		w.WriteHeader(404)
+		return
+	}
+	lo, err := io.ReadAll(o)
+	if err != nil {
+		w.WriteHeader(500)
+		return
+	}
+	err = templates.Log(outputId, string(lo)).
+		Render(r.Context(), w)
+	if err != nil {
+		w.WriteHeader(500)
+		return
 	}
 }
 func (wr *WebRunner) streamOutput(w http.ResponseWriter, r *http.Request) {
@@ -175,10 +202,17 @@ func (wr *WebRunner) runAction(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	log.Println("Queuing Job.")
 	outputId := uuid.NewString()
 	wr.jobs <- startAction{
 		action: a,
 		out:    outputId,
+	}
+	log.Println("Job Queued: ", outputId)
+	if !turbo.IsTurboRequest(r) {
+		log.Println("Not a turbo request, falling back in SSR.")
+		http.Redirect(w, r, fmt.Sprintf("/output/%s", outputId), http.StatusSeeOther)
+		return
 	}
 	component := templates.Log(outputId, "")
 	err = component.Render(r.Context(), w)

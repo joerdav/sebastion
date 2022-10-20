@@ -9,6 +9,9 @@ import "context"
 import "io"
 import "bytes"
 
+// GoExpression
+import "os"
+
 func Layout() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
@@ -81,6 +84,33 @@ if err != nil {
 		if err != nil {
 			return err
 		}
+		// If
+		if os.Getenv("DEBUG") == "true" {
+// RawElement
+			_, err = templBuffer.WriteString("<style>")
+			if err != nil {
+				return err
+			}
+// Text
+var_3 := `
+				@keyframes debug {
+					from {outline: 3px solid #FF0000FF;}
+					to {outline: 3px solid #FF000000;}
+				}
+				* {
+					animation-name: debug;
+					animation-duration: 1s;
+				}
+			`
+_, err = templBuffer.WriteString(var_3)
+if err != nil {
+	return err
+}
+			_, err = templBuffer.WriteString("</style>")
+			if err != nil {
+				return err
+			}
+		}
 		_, err = templBuffer.WriteString("</head>")
 		if err != nil {
 			return err
@@ -115,8 +145,8 @@ if err != nil {
 		}
 		// Element (standard)
 		// Element CSS
-		var var_3 templ.CSSClasses = templ.Classes(templ.Class("container"), templ.Class("p-5"))
-		err = templ.RenderCSSItems(ctx, templBuffer, var_3...)
+		var var_4 templ.CSSClasses = templ.Classes(templ.Class("container"), templ.Class("p-5"))
+		err = templ.RenderCSSItems(ctx, templBuffer, var_4...)
 		if err != nil {
 			return err
 		}
@@ -133,7 +163,7 @@ if err != nil {
 		if err != nil {
 			return err
 		}
-		_, err = templBuffer.WriteString(templ.EscapeString(var_3.String()))
+		_, err = templBuffer.WriteString(templ.EscapeString(var_4.String()))
 		if err != nil {
 			return err
 		}
@@ -180,9 +210,9 @@ func Nav() templ.Component {
 			templBuffer = new(bytes.Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		var_4 := templ.GetChildren(ctx)
-		if var_4 == nil {
-			var_4 = templ.NopComponent
+		var_5 := templ.GetChildren(ctx)
+		if var_5 == nil {
+			var_5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		// Element (standard)
@@ -254,8 +284,8 @@ func Nav() templ.Component {
 			return err
 		}
 		// Text
-		var_5 := `Sebastion`
-		_, err = templBuffer.WriteString(var_5)
+		var_6 := `Sebastion`
+		_, err = templBuffer.WriteString(var_6)
 		if err != nil {
 			return err
 		}

@@ -2,12 +2,10 @@ package webui
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"io"
 	"log"
 	"os"
-	"sync"
 
 	"github.com/joerdav/sebastion"
 )
@@ -27,12 +25,6 @@ func (o *outputs) new(outid string) (io.Writer, func()) {
 		w.Close()
 		delete(o.readerMap, outid)
 	}
-}
-
-type output struct {
-	buf  *bytes.Buffer
-	done bool
-	lock *sync.Mutex
 }
 
 func newWorkerPool(count int, outputs outputs) chan<- startAction {
@@ -57,6 +49,7 @@ func worker(idx int, jobs <-chan startAction, outputs outputs) {
 		w := io.MultiWriter(bw, os.Stdout)
 		doWork(j, w)
 		close()
+		log.Println("Worker", idx, "completed a job.")
 	}
 }
 

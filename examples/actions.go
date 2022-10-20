@@ -1,8 +1,8 @@
 package examples
 
 import (
-	"errors"
-	"strings"
+	"fmt"
+	"math"
 	"time"
 
 	"github.com/joerdav/sebastion"
@@ -10,17 +10,13 @@ import (
 
 // Validators
 
-func noEmails(v string) error {
-	if strings.Contains(v, "@") {
-		return errors.New("no emails allowed")
+func greaterThan(than int) func(int) error {
+	return func(i int) error {
+		if i <= than {
+			return fmt.Errorf("must be greater than %v", than)
+		}
+		return nil
 	}
-	return nil
-}
-func positive(v int) error {
-	if v <= 0 {
-		return errors.New("must be positive")
-	}
-	return nil
 }
 
 type Spam struct {
@@ -29,7 +25,7 @@ type Spam struct {
 }
 
 func (cp *Spam) Details() sebastion.ActionDetails {
-	return sebastion.ActionDetails{Name: "Spam a message"}
+	return sebastion.ActionDetails{Name: "Spam", Description: "Print a message multiple times"}
 }
 func (cp *Spam) Inputs() []sebastion.Input {
 	return []sebastion.Input{
@@ -42,7 +38,7 @@ func (cp *Spam) Inputs() []sebastion.Input {
 		sebastion.NewInput("Repetitions", "How many times to repeat", &cp.repeat,
 			&sebastion.InputProps[int]{
 				Default:   1,
-				Validator: positive,
+				Validator: greaterThan(0),
 			},
 		),
 	}
@@ -56,41 +52,42 @@ func (cp *Spam) Run(ctx sebastion.Context) error {
 	return nil
 }
 
-type EchoSomething struct {
-	text string
+type Primes struct {
+	from, to int
 }
 
-func (cp *EchoSomething) Details() sebastion.ActionDetails {
-	return sebastion.ActionDetails{Name: "Echo", Description: "Repeat whatever is passed in"}
+func (cp *Primes) Details() sebastion.ActionDetails {
+	return sebastion.ActionDetails{Name: "Primes", Description: "Calculate Prime Numbers"}
 }
-func (c *EchoSomething) Inputs() []sebastion.Input {
+func (c *Primes) Inputs() []sebastion.Input {
 	return []sebastion.Input{
-		sebastion.NewInput("Text", "Some text to be echo-ed.", &c.text,
-			&sebastion.InputProps[string]{
-				Validator: sebastion.Validators(noEmails, sebastion.Required[string]),
-			}),
+		sebastion.NewInput("From", "Where to start searching for primes", &c.from, &sebastion.InputProps[int]{
+			Default:   3,
+			Validator: greaterThan(2),
+		}),
+		sebastion.NewInput("To", "Where to stop searching for primes", &c.to, &sebastion.InputProps[int]{
+			Default:   100,
+			Validator: greaterThan(2),
+		}),
 	}
 }
-func (c *EchoSomething) Run(ctx sebastion.Context) error {
-	ctx.Logger.Println(c.text)
-	return nil
-}
-
-type Panic struct {
-	shouldPanic bool
-}
-
-func (Panic) Details() sebastion.ActionDetails {
-	return sebastion.ActionDetails{Name: "Panic"}
-}
-func (p *Panic) Inputs() []sebastion.Input {
-	return []sebastion.Input{
-		sebastion.NewInput("Panic?", "", &p.shouldPanic, nil),
+func (c *Primes) Run(ctx sebastion.Context) error {
+	from, to := c.from, c.to
+	if from < 2 || to < 2 {
+		return fmt.Errorf("Numbers must be greater than 2.")
 	}
-}
-func (p Panic) Run(sebastion.Context) error {
-	if p.shouldPanic {
-		panic("panic")
+	for from <= c.to {
+		isPrime := true
+		for i := 2; i <= int(math.Sqrt(float64(from))); i++ {
+			if from%i == 0 {
+				isPrime = false
+				break
+			}
+		}
+		if isPrime {
+			ctx.Logger.Printf("%d\n", from)
+		}
+		from++
 	}
 	return nil
 }
