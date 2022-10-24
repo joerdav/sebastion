@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
@@ -35,8 +34,8 @@ type WebRunner struct {
 	Actions      []sebastion.Action
 	Router       http.Handler
 	customInputs []WebInputHandler
-	jobs         chan<- startAction
-	outputs      outputs
+	jobs         chan<- startJob
+	logStore     LogStore
 }
 
 // AppendHandlers allows you to add custom code to retrieve inputs for an action.
@@ -45,19 +44,23 @@ func (t *WebRunner) AppendHandlers(h ...WebInputHandler) {
 }
 
 func Web(cfg WebConfig, actions ...sebastion.Action) (http.Handler, error) {
+	logStore, err := NewLogStore()
+	if err != nil {
+		return nil, fmt.Errorf("sebastion: log store: %w", err)
+	}
 	wr := WebRunner{
-		Actions: actions,
-		outputs: newOutputs(),
+		Actions:  actions,
+		logStore: logStore,
 	}
 	wr.routes()
-	err := validateActions(wr.Actions)
+	err = validateActions(wr.Actions)
 	if err != nil {
 		return nil, err
 	}
 	if cfg.Workers < 1 {
 		cfg.Workers = 1
 	}
-	wr.jobs = newWorkerPool(cfg.Workers, wr.outputs)
+	wr.jobs = newWorkerPool(cfg.Workers, wr.logStore)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.Method, r.URL)
 		wr.Router.ServeHTTP(w, r)
@@ -68,8 +71,8 @@ func Web(cfg WebConfig, actions ...sebastion.Action) (http.Handler, error) {
 func (wr *WebRunner) routes() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", wr.index)
-	r.HandleFunc("/output/{id}/ws", wr.streamOutput)
-	r.HandleFunc("/output/{id}", wr.getOutput)
+	r.HandleFunc("/job/{jobid}/ws", wr.streamJobLog)
+	r.HandleFunc("/job/{jobid}", wr.getJobLog)
 	r.HandleFunc("/action/{name}", wr.actionForm).Methods(http.MethodGet)
 	r.HandleFunc("/action/{name}", wr.runAction).Methods(http.MethodPost)
 	wr.Router = r
@@ -81,49 +84,50 @@ func (wr *WebRunner) index(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(500)
 	}
 }
-func (wr *WebRunner) getOutput(w http.ResponseWriter, r *http.Request) {
+func (wr *WebRunner) getJobLog(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	outputId := vars["id"]
-	if outputId == "" {
+	jobId := vars["jobid"]
+	if jobId == "" {
 		w.WriteHeader(404)
 		return
 	}
-	o, ok := wr.outputs.readerMap[outputId]
-	if !ok {
-		w.WriteHeader(404)
-		return
-	}
-	lo, err := io.ReadAll(o)
+	all, err := wr.logStore.GetAllLogs(jobId)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
-	err = templates.Log(outputId, string(lo)).
+	msg := "Running in no-js mode, please refresh the page to see log updates.\n"
+	err = templates.Log(jobId, msg+all).
 		Render(r.Context(), w)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
 }
-func (wr *WebRunner) streamOutput(w http.ResponseWriter, r *http.Request) {
+func (wr *WebRunner) streamJobLog(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received connection request")
 	vars := mux.Vars(r)
-	outputId := vars["id"]
-	if outputId == "" {
+	jobId := vars["jobid"]
+	if jobId == "" {
+		log.Println("Missing jobId path var")
 		w.WriteHeader(404)
 		return
 	}
-	o, ok := wr.outputs.readerMap[outputId]
-	if !ok {
-		w.WriteHeader(404)
+	o, close, err := wr.logStore.TailLog(jobId)
+	if err != nil {
+		log.Println("Failed to tail log", err)
+		w.WriteHeader(500)
 		return
 	}
+	defer close()
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		log.Println("Could not upgrade connection", err)
 		w.WriteHeader(500)
 		return
 	}
 	defer ws.Close()
+	log.Println("Preparing to stream logs")
 	lb := new(bytes.Buffer)
 	sn := bufio.NewScanner(o)
 	for sn.Scan() {
@@ -132,7 +136,6 @@ func (wr *WebRunner) streamOutput(w http.ResponseWriter, r *http.Request) {
 		err := templates.LogStream(lb.String()).
 			Render(r.Context(), html)
 		if err != nil {
-			ws.Close()
 			return
 		}
 		err = ws.WriteMessage(websocket.TextMessage, html.Bytes())
@@ -140,6 +143,22 @@ func (wr *WebRunner) streamOutput(w http.ResponseWriter, r *http.Request) {
 			log.Println("Error: ", err)
 			return
 		}
+	}
+	all, err := wr.logStore.GetAllLogs(jobId)
+	if err != nil {
+		log.Println("Error: ", err)
+		return
+	}
+	html := new(bytes.Buffer)
+	err = templates.LogStream(all).
+		Render(r.Context(), html)
+	if err != nil {
+		return
+	}
+	err = ws.WriteMessage(websocket.TextMessage, html.Bytes())
+	if err != nil {
+		log.Println("Error: ", err)
+		return
 	}
 }
 
@@ -203,18 +222,18 @@ func (wr *WebRunner) runAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("Queuing Job.")
-	outputId := uuid.NewString()
-	wr.jobs <- startAction{
+	jobId := uuid.NewString()
+	wr.jobs <- startJob{
 		action: a,
-		out:    outputId,
+		out:    jobId,
 	}
-	log.Println("Job Queued: ", outputId)
+	log.Println("Job Queued: ", jobId)
 	if !turbo.IsTurboRequest(r) {
-		log.Println("Not a turbo request, falling back in SSR.")
-		http.Redirect(w, r, fmt.Sprintf("/output/%s", outputId), http.StatusSeeOther)
+		log.Println("Not a turbo request, job back in SSR.")
+		http.Redirect(w, r, fmt.Sprintf("/job/%s", jobId), http.StatusSeeOther)
 		return
 	}
-	component := templates.Log(outputId, "")
+	component := templates.Log(jobId, "")
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		log.Println(err)

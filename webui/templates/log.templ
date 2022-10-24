@@ -21,20 +21,20 @@ templ LogComponent(text string) {
 	<textarea class={ logStyle } readonly="true" id="action-logs">{ text }</textarea>
 }
 
-templ Log(outputId string, text string) {
+templ Log(jobId string, text string) {
 	@Layout() {
-		@LogInit(outputId, text)
+		@LogInit(jobId, text)
 	}
 }
 
-templ LogInit(outputId string, text string) {
+templ LogInit(jobId string, text string) {
 	<turbo-frame id="log-frame">
 		@card() {
 			@LogComponent(text)
-			<input type="hidden" id="outputid" value={ outputId }/>
+			<input type="hidden" id="jobid" value={ jobId }/>
 			<script>
-				var id = document.querySelector('#outputid').value
-				Turbo.connectStreamSource(new WebSocket(`ws://${window.location.host}/output/${id}/ws`));
+				var id = document.querySelector('#jobid').value
+				Turbo.connectStreamSource(new WebSocket(`ws://${window.location.host}/job/${id}/ws`));
 			</script>
 		}
 	</turbo-frame>
