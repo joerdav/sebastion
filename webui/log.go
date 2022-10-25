@@ -13,9 +13,9 @@ import (
 )
 
 type LogStore interface {
-	CreateLogger(string) (*log.Logger, func(), error)
-	TailLog(string) (io.Reader, func(), error)
-	GetAllLogs(string) (string, error)
+	CreateLogger(string, string) (*log.Logger, func(), error)
+	TailLog(string, string) (io.Reader, func(), error)
+	GetAllLogs(string, string) (string, error)
 }
 
 type Store struct {
@@ -41,10 +41,10 @@ func NewLogStore() (LogStore, error) {
 	}, nil
 }
 
-func (s *Store) CreateLogger(id string) (*log.Logger, func(), error) {
+func (s *Store) CreateLogger(taskName, id string) (*log.Logger, func(), error) {
 	s.runningJobsLock.Lock()
 	defer s.runningJobsLock.Unlock()
-	fp, err := url.JoinPath(s.logFolder, url.PathEscape(id)+".log")
+	fp, err := url.JoinPath(s.logFolder, taskName, url.PathEscape(id)+".log")
 	if err != nil {
 		return nil, nil, fmt.Errorf("construct path: %w", err)
 	}
@@ -74,8 +74,8 @@ func (f readerFunc) Read(b []byte) (n int, err error) {
 	return f(b)
 }
 
-func (s *Store) GetAllLogs(id string) (string, error) {
-	fp, err := url.JoinPath(s.logFolder, url.PathEscape(id)+".log")
+func (s *Store) GetAllLogs(taskName, id string) (string, error) {
+	fp, err := url.JoinPath(s.logFolder, taskName, url.PathEscape(id)+".log")
 	if err != nil {
 		return "", fmt.Errorf("construct path: %w", err)
 	}
@@ -90,8 +90,8 @@ func (s *Store) GetAllLogs(id string) (string, error) {
 	return string(fs), nil
 }
 
-func (s *Store) TailLog(id string) (io.Reader, func(), error) {
-	fp, err := url.JoinPath(s.logFolder, url.PathEscape(id)+".log")
+func (s *Store) TailLog(taskName, id string) (io.Reader, func(), error) {
+	fp, err := url.JoinPath(s.logFolder, taskName, url.PathEscape(id)+".log")
 	if err != nil {
 		return nil, nil, fmt.Errorf("construct path: %w", err)
 	}

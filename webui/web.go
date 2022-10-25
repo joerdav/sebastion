@@ -71,8 +71,8 @@ func Web(cfg WebConfig, actions ...sebastion.Action) (http.Handler, error) {
 func (wr *WebRunner) routes() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", wr.index)
-	r.HandleFunc("/job/{jobid}/ws", wr.streamJobLog)
-	r.HandleFunc("/job/{jobid}", wr.getJobLog)
+	r.HandleFunc("/job/{taskname}/{jobid}/ws", wr.streamJobLog)
+	r.HandleFunc("/job/{taskname}/{jobid}", wr.getJobLog)
 	r.HandleFunc("/action/{name}", wr.actionForm).Methods(http.MethodGet)
 	r.HandleFunc("/action/{name}", wr.runAction).Methods(http.MethodPost)
 	wr.Router = r
@@ -87,17 +87,18 @@ func (wr *WebRunner) index(w http.ResponseWriter, r *http.Request) {
 func (wr *WebRunner) getJobLog(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	jobId := vars["jobid"]
-	if jobId == "" {
+	taskname := vars["taskname"]
+	if jobId == "" || taskname == "" {
 		w.WriteHeader(404)
 		return
 	}
-	all, err := wr.logStore.GetAllLogs(jobId)
+	all, err := wr.logStore.GetAllLogs(taskname, jobId)
 	if err != nil {
 		w.WriteHeader(500)
 		return
 	}
 	msg := "Running in no-js mode, please refresh the page to see log updates.\n"
-	err = templates.Log(jobId, msg+all).
+	err = templates.Log(taskname, jobId, msg+all).
 		Render(r.Context(), w)
 	if err != nil {
 		w.WriteHeader(500)
@@ -108,12 +109,12 @@ func (wr *WebRunner) streamJobLog(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received connection request")
 	vars := mux.Vars(r)
 	jobId := vars["jobid"]
+	taskname := vars["taskname"]
 	if jobId == "" {
-		log.Println("Missing jobId path var")
 		w.WriteHeader(404)
 		return
 	}
-	o, close, err := wr.logStore.TailLog(jobId)
+	o, close, err := wr.logStore.TailLog(taskname, jobId)
 	if err != nil {
 		log.Println("Failed to tail log", err)
 		w.WriteHeader(500)
@@ -144,7 +145,7 @@ func (wr *WebRunner) streamJobLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	all, err := wr.logStore.GetAllLogs(jobId)
+	all, err := wr.logStore.GetAllLogs(taskname, jobId)
 	if err != nil {
 		log.Println("Error: ", err)
 		return
@@ -230,10 +231,10 @@ func (wr *WebRunner) runAction(w http.ResponseWriter, r *http.Request) {
 	log.Println("Job Queued: ", jobId)
 	if !turbo.IsTurboRequest(r) {
 		log.Println("Not a turbo request, job back in SSR.")
-		http.Redirect(w, r, fmt.Sprintf("/job/%s", jobId), http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/job/%s/%s", a.Details().Name, jobId), http.StatusSeeOther)
 		return
 	}
-	component := templates.Log(jobId, "")
+	component := templates.Log(a.Details().Name, jobId, "")
 	err = component.Render(r.Context(), w)
 	if err != nil {
 		log.Println(err)

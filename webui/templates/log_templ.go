@@ -108,7 +108,7 @@ func LogComponent(text string) templ.Component {
 	})
 }
 
-func Log(jobId string, text string) templ.Component {
+func Log(name, jobId, text string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
@@ -123,7 +123,7 @@ func Log(jobId string, text string) templ.Component {
 		// TemplElement
 		var_4 := templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 			// TemplElement
-			err = LogInit(jobId, text).Render(ctx, templBuffer)
+			err = LogInit(name, jobId, text).Render(ctx, templBuffer)
 			if err != nil {
 				return err
 			}
@@ -140,7 +140,7 @@ func Log(jobId string, text string) templ.Component {
 	})
 }
 
-func LogInit(jobId string, text string) templ.Component {
+func LogInit(name, jobId, text string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
 		templBuffer, templIsBuffer := w.(*bytes.Buffer)
 		if !templIsBuffer {
@@ -217,6 +217,45 @@ func LogInit(jobId string, text string) templ.Component {
 			if err != nil {
 				return err
 			}
+			// Element (void)
+			_, err = templBuffer.WriteString("<input")
+			if err != nil {
+				return err
+			}
+			// Element Attributes
+			_, err = templBuffer.WriteString(" type=\"hidden\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" id=\"jobname\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(" value=")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(templ.EscapeString(name))
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString("\"")
+			if err != nil {
+				return err
+			}
+			_, err = templBuffer.WriteString(">")
+			if err != nil {
+				return err
+			}
+			// Whitespace (normalised)
+			_, err = templBuffer.WriteString(` `)
+			if err != nil {
+				return err
+			}
 // RawElement
 			_, err = templBuffer.WriteString("<script>")
 			if err != nil {
@@ -225,7 +264,8 @@ func LogInit(jobId string, text string) templ.Component {
 // Text
 var_7 := `
 				var id = document.querySelector('#jobid').value
-				Turbo.connectStreamSource(new WebSocket(` + "`" + `ws://${window.location.host}/job/${id}/ws` + "`" + `));
+				var name = document.querySelector('#jobname').value
+				Turbo.connectStreamSource(new WebSocket(` + "`" + `ws://${window.location.host}/job/${name}/${id}/ws` + "`" + `));
 			`
 _, err = templBuffer.WriteString(var_7)
 if err != nil {

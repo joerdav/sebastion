@@ -31,7 +31,7 @@ func worker(idx int, jobs <-chan startJob, logs LogStore) {
 
 func doWork(job startJob, logs LogStore) {
 	ctx := sebastion.NewContext(context.Background())
-	logger, close, err := logs.CreateLogger(job.out)
+	logger, close, err := logs.CreateLogger(job.action.Details().Name, job.out)
 	if err != nil {
 		log.Printf("failed to initialize logger: %v\n", err)
 		return
