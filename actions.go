@@ -45,6 +45,9 @@ type MultiStringSelect struct {
 	Props   InputProps[string]
 }
 
+// MultiStringSelect is a InputValue
+var _ InputValue = MultiStringSelect{}
+
 func (si MultiStringSelect) String() string {
 	return fmt.Sprint(*si.Ptr)
 }
@@ -68,13 +71,16 @@ func (si MultiStringSelect) Set(v any) error {
 	if !found {
 		return ErrSelectionNotAnOption
 	}
+	if si.Props.Validator == nil {
+		*si.Ptr = s
+		return nil
+	}
+	err := si.Props.Validator(s)
+	if err != nil {
+		return err
+	}
 	*si.Ptr = s
 	return nil
-}
-
-type InputReference[T any] struct {
-	Ptr   *T
-	Props InputProps[T]
 }
 
 type InputProps[T any] struct {
@@ -82,26 +88,13 @@ type InputProps[T any] struct {
 	Validator func(T) error
 }
 
-func Validators[T any](vs ...func(T) error) func(T) error {
-	return func(t T) error {
-		for _, v := range vs {
-			err := v(t)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
+type InputReference[T any] struct {
+	Ptr   *T
+	Props InputProps[T]
 }
 
-// Required constrains an input to non-zero valuesj
-func Required[T comparable](v T) error {
-	var zero T
-	if v == zero {
-		return errors.New("required field")
-	}
-	return nil
-}
+// InputReference is a InputValue
+var _ InputValue = InputReference[string]{}
 
 func (si InputReference[T]) Set(v any) error {
 	if si.Ptr == nil {
@@ -129,9 +122,6 @@ func (si InputReference[T]) String() string {
 	return fmt.Sprint(*si.Ptr)
 }
 
-func emptyValidator[T any](T) error {
-	return nil
-}
 func NewInput[T any](name, description string, value *T, props *InputProps[T]) Input {
 	ir := InputReference[T]{Ptr: value}
 	if props != nil {
@@ -142,6 +132,7 @@ func NewInput[T any](name, description string, value *T, props *InputProps[T]) I
 	}
 	return Input{Name: name, Description: description, Value: ir}
 }
+
 func NewMultiStringInput(name, description string, value *string, options []string, props *InputProps[string]) Input {
 	ir := MultiStringSelect{Ptr: value, Options: options}
 	if props != nil {
@@ -151,4 +142,29 @@ func NewMultiStringInput(name, description string, value *string, options []stri
 		ir.Props.Validator = func(s string) error { return nil }
 	}
 	return Input{name, description, ir}
+}
+
+func Validators[T any](vs ...func(T) error) func(T) error {
+	return func(t T) error {
+		for _, v := range vs {
+			err := v(t)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
+// Required constrains an input to non-zero valuesj
+func Required[T comparable](v T) error {
+	var zero T
+	if v == zero {
+		return errors.New("required field")
+	}
+	return nil
+}
+
+func emptyValidator[T any](T) error {
+	return nil
 }

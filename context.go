@@ -5,16 +5,16 @@ import (
 	"log"
 )
 
+type Context struct {
+	ctx    *context.Context
+	Logger *log.Logger
+}
+
 func NewContext(ctx context.Context) Context {
 	return Context{
 		Logger: log.Default(),
 		ctx:    &ctx,
 	}
-}
-
-type Context struct {
-	ctx    *context.Context
-	Logger *log.Logger
 }
 
 func (c *Context) Context() context.Context {
